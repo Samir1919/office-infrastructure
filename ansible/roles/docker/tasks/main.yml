@@ -2,7 +2,7 @@
 - name: Verify supported operating system
   ansible.builtin.assert:
     that:
-      - ansible_distribution == 'Ubuntu'
+      - ansible_facts['distribution'] == 'Ubuntu'
     fail_msg: Docker role supports Ubuntu hosts only.
 
 - name: Install Docker repository prerequisites
@@ -31,11 +31,26 @@
     mode: '0644'
 
 - name: Configure Docker official APT repository
-  ansible.builtin.apt_repository:
-    repo: "{{ docker_apt_repository }}"
-    filename: docker
+  ansible.builtin.deb822_repository:
+    name: docker
+    types:
+      - deb
+    uris:
+      - https://download.docker.com/linux/ubuntu
+    suites:
+      - "{{ ansible_facts['distribution_release'] }}"
+    components:
+      - stable
+    architectures:
+      - "{{ docker_apt_arch }}"
+    signed_by: /etc/apt/keyrings/docker.asc
     state: present
+
+- name: Refresh APT cache after configuring Docker repository
+  ansible.builtin.apt:
     update_cache: true
+    cache_valid_time: 0
+  check_mode: false
 
 - name: Install Docker Engine and Compose plugin
   ansible.builtin.apt:
