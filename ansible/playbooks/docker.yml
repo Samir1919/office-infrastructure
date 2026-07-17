@@ -1,0 +1,11 @@
+---
+- name: Install Docker Engine on approved Docker hosts
+  hosts: docker
+  become: true
+
+  vars_files:
+    - ../group_vars/all/main.yml
+    - ../group_vars/all/vault.yml
+
+  roles:
+    - docker

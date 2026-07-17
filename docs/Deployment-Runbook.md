@@ -35,3 +35,22 @@ security add-generic-password -a "$USER" -s "office-infrastructure-ansible-vault
 ```
 
 Afterward, run Ansible commands without `--ask-vault-pass`.
+
+## Docker Engine phase
+
+Docker automation is restricted to the `docker` inventory group: `crm01`, `web01`, `erp01`, and `npm01`. Do not run the Docker playbook against `db01`, `pbx01`, or `mon01`.
+
+Run the following from `ansible/` before production application:
+
+```bash
+ansible-playbook playbooks/docker.yml --syntax-check
+ansible-playbook playbooks/docker.yml --check --limit crm01
+```
+
+After owner review and approval, apply first to `crm01`:
+
+```bash
+ansible-playbook playbooks/docker.yml --limit crm01
+```
+
+Validate Docker Engine and the Compose plugin before applying to the remaining approved Docker hosts.
