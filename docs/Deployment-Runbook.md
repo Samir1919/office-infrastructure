@@ -31,7 +31,7 @@ The local Ansible configuration uses the versioned, password-free helper `script
 Add or update the Keychain item once. Keep `-w` as the final option so macOS prompts securely:
 
 ```bash
-security add-generic-password -a samir -s "office-infrastructure-ansible-vault" -U -w
+security add-generic-password -a "$USER" -s "office-infrastructure-ansible-vault" -U -w
 ```
 
 Afterward, run Ansible commands without `--ask-vault-pass`.
