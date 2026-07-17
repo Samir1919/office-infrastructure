@@ -14,9 +14,11 @@ __pycache__/
 # Ansible
 *.retry
 *.log
+ansible/collections/
 
 # Secrets
 *.vault
+vault-password*
 .env
 .env.*
 
