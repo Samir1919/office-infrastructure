@@ -1,0 +1,13 @@
+*.retry
+*.log
+
+.vscode/
+.idea/
+
+.DS_Store
+
+.env
+
+*.vault
+
+ansible/*.retry
