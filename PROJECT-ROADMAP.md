@@ -9,7 +9,7 @@
 | Project | Office Infrastructure Project |
 | Status | Active |
 | Last consolidated | 2026-07-17 |
-| Current phase | Automation foundation, Docker preparation |
+| Current phase | Service deployment preparation, capacity review |
 | Maintainer | Project Owner |
 
 ## Objective and architecture principles
@@ -70,7 +70,7 @@ The approved automation layer improves implementation quality without changing t
 | 1–3 | Hardware, Proxmox, template, and seven base VMs | Complete |
 | 4.0 | Ansible control plane, SSH keys, and inventory | Complete |
 | 4.1 | Common baseline role and validation | Complete |
-| 4.2 | Docker Engine and Compose on Docker hosts | Pending |
+| 4.2 | Docker Engine and Compose on Docker hosts | Complete |
 | 5 | CRM, website, ERP, Nginx Proxy Manager | Pending |
 | 6 | MongoDB, PostgreSQL, database security and backups | Pending |
 | 7 | FreePBX | Pending |
@@ -93,14 +93,13 @@ The current 2 GB / 32 GB allocation is a baseline, not final service sizing. Bef
 - Inventory: `ansible/inventory/production.yml`; global variables: `ansible/group_vars/all/main.yml`; encrypted sudo credential: `ansible/group_vars/all/vault.yml`.
 - The common role passed syntax validation, was applied and validated on all seven production VMs, and each VM has a `common-base` snapshot.
 - The macOS Keychain provides the local Vault password; the encrypted Vault file is versioned only in the private repository.
+- Docker Engine and Compose are installed and validated on `crm01`, `web01`, `erp01`, and `npm01`; each has a `docker-base` snapshot.
 
 ## Next approved implementation step
 
-1. Create the Docker inventory group containing only `crm01`, `web01`, `erp01`, and `npm01`.
-2. Implement and syntax-check an idempotent Docker Engine and Compose role.
-3. Run a `crm01` canary check, review it, and obtain owner approval before applying.
-4. Validate the canary, then apply only to the approved remaining Docker hosts.
-5. Create `docker-base` snapshots and update the changelog.
+1. Review the 16 GB Proxmox host capacity against the target application resource profiles.
+2. Document options, risks, and the approved resource decision before deploying any application.
+3. After owner approval, create the Phase 5 application deployment design and canary order.
 
 ## Supporting references
 

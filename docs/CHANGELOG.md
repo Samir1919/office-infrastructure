@@ -22,6 +22,7 @@ This is the durable history of completed and validated work. Planned work belong
 - Approved the private-repository policy for versioning the encrypted Vault file; the Vault password remains in the macOS Keychain and outside Git.
 - The common baseline was applied and validated on canary host `crm01`: timezone `Asia/Dhaka`, QEMU Guest Agent active, and `qemu-guest-agent` version `1:8.2.2+ds-0ubuntu1.17`.
 - Following successful canary validation, the common baseline was applied to the remaining six production VMs and `common-base` snapshots were created for all production VMs.
+- Docker Engine and Compose were applied and validated on canary host `crm01`, then rolled out to `web01`, `erp01`, and `npm01`; `docker-base` snapshots were created for all four Docker hosts.
 
 ### Corrected
 
@@ -30,7 +31,7 @@ This is the durable history of completed and validated work. Planned work belong
 
 ### Next step
 
-- Create the Docker inventory group and idempotent Docker Engine and Compose role for the approved Docker hosts only.
+- Complete the documented Proxmox host-capacity review before Phase 5 application deployment.
 
 ## Before 2026-07-17 — Infrastructure foundation
 
