@@ -30,6 +30,14 @@
     group: root
     mode: '0644'
 
+- name: Verify Docker repository package index is reachable
+  ansible.builtin.uri:
+    url: "https://download.docker.com/linux/ubuntu/dists/{{ ansible_facts['distribution_release'] }}/stable/binary-{{ docker_apt_arch }}/Packages.gz"
+    method: HEAD
+    status_code: 200
+    return_content: false
+  check_mode: false
+
 - name: Configure Docker official APT repository
   ansible.builtin.deb822_repository:
     name: docker
@@ -56,6 +64,7 @@
   ansible.builtin.apt:
     name: "{{ docker_packages }}"
     state: present
+  when: not ansible_check_mode
 
 - name: Add approved users to Docker group
   ansible.builtin.user:
