@@ -12,7 +12,7 @@ A version-controlled, self-hosted office infrastructure built on Proxmox VE and 
 
 ## Current status
 
-Infrastructure foundation and Ansible control-plane connectivity are complete. The next implementation item is the common baseline role; Docker and applications have not been deployed.
+Infrastructure foundation, Ansible control-plane, and the common baseline are complete. Docker preparation is the next implementation item; Docker and applications have not been deployed.
 
 ## Security note
 

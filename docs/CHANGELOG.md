@@ -21,6 +21,7 @@ This is the durable history of completed and validated work. Planned work belong
 - Encrypted Ansible Vault-based sudo credentials were configured locally for Ansible use.
 - Approved the private-repository policy for versioning the encrypted Vault file; the Vault password remains in the macOS Keychain and outside Git.
 - The common baseline was applied and validated on canary host `crm01`: timezone `Asia/Dhaka`, QEMU Guest Agent active, and `qemu-guest-agent` version `1:8.2.2+ds-0ubuntu1.17`.
+- Following successful canary validation, the common baseline was applied to the remaining six production VMs and `common-base` snapshots were created for all production VMs.
 
 ### Corrected
 
@@ -29,7 +30,7 @@ This is the durable history of completed and validated work. Planned work belong
 
 ### Next step
 
-- After owner approval, apply and validate the common baseline on the remaining six production VMs, then create `common-base` snapshots.
+- Create the Docker inventory group and idempotent Docker Engine and Compose role for the approved Docker hosts only.
 
 ## Before 2026-07-17 — Infrastructure foundation
 

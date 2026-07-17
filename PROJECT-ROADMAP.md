@@ -9,7 +9,7 @@
 | Project | Office Infrastructure Project |
 | Status | Active |
 | Last consolidated | 2026-07-17 |
-| Current phase | Automation foundation, before Docker |
+| Current phase | Automation foundation, Docker preparation |
 | Maintainer | Project Owner |
 
 ## Objective and architecture principles
@@ -69,7 +69,7 @@ The approved automation layer improves implementation quality without changing t
 |---:|---|---|
 | 1–3 | Hardware, Proxmox, template, and seven base VMs | Complete |
 | 4.0 | Ansible control plane, SSH keys, and inventory | Complete |
-| 4.1 | Common baseline role and validation | In progress |
+| 4.1 | Common baseline role and validation | Complete |
 | 4.2 | Docker Engine and Compose on Docker hosts | Pending |
 | 5 | CRM, website, ERP, Nginx Proxy Manager | Pending |
 | 6 | MongoDB, PostgreSQL, database security and backups | Pending |
@@ -90,18 +90,17 @@ The current 2 GB / 32 GB allocation is a baseline, not final service sizing. Bef
 
 - macOS control node: Homebrew Ansible 14.2.0 on Python 3.14.6.
 - All seven VMs return `pong` to `ansible all -m ping` and use `/usr/bin/python3.12`.
-- Inventory: `ansible/inventory/production.yml`; global variables: `ansible/group_vars/all.yml`.
-- The common role has been added locally and passed syntax validation.
-- A `crm01` check-mode run stopped before any change because `sysadmin` requires a sudo password. SSH key access is working; privilege escalation is the remaining bootstrap requirement.
+- Inventory: `ansible/inventory/production.yml`; global variables: `ansible/group_vars/all/main.yml`; encrypted sudo credential: `ansible/group_vars/all/vault.yml`.
+- The common role passed syntax validation, was applied and validated on all seven production VMs, and each VM has a `common-base` snapshot.
+- The macOS Keychain provides the local Vault password; the encrypted Vault file is versioned only in the private repository.
 
 ## Next approved implementation step
 
-1. Establish secure non-interactive sudo for Ansible. Preferred: store the existing `sysadmin` sudo password in an encrypted Ansible Vault file; do not commit the Vault password or any plaintext secret.
-2. Re-run `ansible-playbook playbooks/common.yml --check --limit crm01`.
-3. After review, apply to `crm01` and validate package state, timezone, and QEMU Guest Agent.
-4. Apply to the remaining VMs only after successful validation.
-5. Create `common-base` snapshots and update the changelog.
-6. Then create the Docker inventory group and Docker role.
+1. Create the Docker inventory group containing only `crm01`, `web01`, `erp01`, and `npm01`.
+2. Implement and syntax-check an idempotent Docker Engine and Compose role.
+3. Run a `crm01` canary check, review it, and obtain owner approval before applying.
+4. Validate the canary, then apply only to the approved remaining Docker hosts.
+5. Create `docker-base` snapshots and update the changelog.
 
 ## Supporting references
 
