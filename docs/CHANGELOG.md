@@ -18,15 +18,18 @@ This is the durable history of completed and validated work. Planned work belong
 - `ansible all -m ping` succeeded for all seven production VMs.
 - Target hosts use `/usr/bin/python3.12`.
 - The `common.yml` playbook passed syntax validation and inventory graph validation.
+- Encrypted Ansible Vault-based sudo credentials were configured locally for Ansible use.
+- Approved the private-repository policy for versioning the encrypted Vault file; the Vault password remains in the macOS Keychain and outside Git.
+- The common baseline was applied and validated on canary host `crm01`: timezone `Asia/Dhaka`, QEMU Guest Agent active, and `qemu-guest-agent` version `1:8.2.2+ds-0ubuntu1.17`.
 
 ### Corrected
 
 - Renamed the common role task file from `main.ymal` to `main.yml`.
 - Stopped tracking the generated Ansible collection directory; dependencies are reproduced through `requirements.yml`.
 
-### Current blocker
+### Next step
 
-- `crm01` check mode reached privilege escalation but stopped before change because `sysadmin` needs a sudo password. Configure encrypted Ansible Vault-based sudo credentials before applying the common role.
+- After owner approval, apply and validate the common baseline on the remaining six production VMs, then create `common-base` snapshots.
 
 ## Before 2026-07-17 — Infrastructure foundation
 

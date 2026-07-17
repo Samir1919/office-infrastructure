@@ -23,3 +23,15 @@ ansible-playbook playbooks/common.yml --check --limit crm01
 ```
 
 The present check-mode run requires an Ansible Vault-supplied sudo credential for `sysadmin`. Do not store that password in inventory, a playbook, shell history, or an unencrypted repository file.
+
+## macOS Keychain Vault access
+
+The local Ansible configuration uses an executable helper at `/Users/samir/.config/ansible/office-infrastructure-vault-password`. It retrieves the Vault password from the macOS Keychain; the helper contains no password and is not stored in Git. The encrypted `ansible/group_vars/all/vault.yml` file is versioned only in this private repository; never commit a plaintext equivalent or the Vault password.
+
+Add or update the Keychain item once. Keep `-w` as the final option so macOS prompts securely:
+
+```bash
+security add-generic-password -a samir -s "office-infrastructure-ansible-vault" -U -w
+```
+
+Afterward, run Ansible commands without `--ask-vault-pass`.

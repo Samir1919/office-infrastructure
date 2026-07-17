@@ -7,6 +7,7 @@
 - Updated Proxmox host and VM baseline.
 - QEMU Guest Agent in the base VM standard.
 - Git ignore rules for common secret-bearing files and private-key patterns.
+- Encrypted Ansible Vault files may be versioned only in the private repository; Vault passwords remain in the control node’s macOS Keychain.
 
 ## Required before production exposure
 

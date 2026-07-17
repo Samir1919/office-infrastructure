@@ -59,7 +59,7 @@ Production VMs are full clones of VM900, use Ubuntu Server 24.04 LTS, have stati
 5. This roadmap is canonical; `docs/` contains supporting references and ADRs explain permanent decisions.
 6. Git is change history; GitHub is off-site backup and should remain private except for intentional reviews.
 7. Production workflow is documentation → review/approval → implementation → validation → snapshot where applicable → changelog.
-8. Never commit secrets; use Ansible Vault or local secret files when needed.
+8. Never commit plaintext secrets. Ansible Vault-encrypted secret files may be versioned only in the private repository; Vault passwords remain outside Git in each control node’s macOS Keychain or approved password manager.
 
 ## Delivery order
 
