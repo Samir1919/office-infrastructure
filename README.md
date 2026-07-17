@@ -8,6 +8,7 @@ A version-controlled, self-hosted office infrastructure built on Proxmox VE and 
 - **[AI and change-control rules](AGENTS.md)** — rules for AI-assisted work.
 - **[Technical documentation](docs/)** — VM, network, security, backup, monitoring, and runbooks.
 - **[Ansible automation](ansible/)** — inventory, roles, and playbooks.
+- **[New control-node setup](docs/New-Control-Node-Setup.md)** — move project automation safely to a new Mac or PC.
 
 ## Current status
 
