@@ -26,7 +26,7 @@ The present check-mode run requires an Ansible Vault-supplied sudo credential fo
 
 ## macOS Keychain Vault access
 
-The local Ansible configuration uses an executable helper at `/Users/samir/.config/ansible/office-infrastructure-vault-password`. It retrieves the Vault password from the macOS Keychain; the helper contains no password and is not stored in Git. The encrypted `ansible/group_vars/all/vault.yml` file is versioned only in this private repository; never commit a plaintext equivalent or the Vault password.
+The local Ansible configuration uses the versioned, password-free helper `scripts/ansible-vault-keychain.sh`. It retrieves the Vault password from the macOS Keychain. The encrypted `ansible/group_vars/all/vault.yml` file is versioned only in this private repository; never commit a plaintext equivalent or the Vault password.
 
 Add or update the Keychain item once. Keep `-w` as the final option so macOS prompts securely:
 
