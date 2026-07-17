@@ -1,0 +1,17 @@
+---
+- name: Bootstrap Ubuntu servers
+  hosts: all
+  become: true
+
+  tasks:
+
+    - name: Wait for SSH connection
+      ansible.builtin.wait_for_connection:
+        timeout: 300
+
+    - name: Gather facts
+      ansible.builtin.setup:
+
+    - name: Import common role
+      ansible.builtin.import_role:
+        name: common

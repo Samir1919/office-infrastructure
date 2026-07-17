@@ -1,0 +1,38 @@
+all:
+  children:
+
+    office:
+      vars:
+        ansible_user: sysadmin
+        ansible_port: 22
+
+      children:
+
+        app:
+          hosts:
+            crm01:
+              ansible_host: 192.168.10.101
+
+            web01:
+              ansible_host: 192.168.10.104
+
+            erp01:
+              ansible_host: 192.168.10.105
+
+        database:
+          hosts:
+            db01:
+              ansible_host: 192.168.10.102
+
+        communication:
+          hosts:
+            pbx01:
+              ansible_host: 192.168.10.103
+
+        infrastructure:
+          hosts:
+            npm01:
+              ansible_host: 192.168.10.106
+
+            mon01:
+              ansible_host: 192.168.10.107

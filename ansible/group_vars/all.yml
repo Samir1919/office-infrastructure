@@ -1,0 +1,16 @@
+---
+timezone: Asia/Dhaka
+
+locale: en_US.UTF-8
+
+common_packages:
+  - curl
+  - wget
+  - git
+  - vim
+  - unzip
+  - htop
+  - net-tools
+  - ca-certificates
+  - software-properties-common
+  - qemu-guest-agent
