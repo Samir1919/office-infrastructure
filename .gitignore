@@ -1,13 +1,33 @@
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# JetBrains
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+
+# Ansible
 *.retry
 *.log
 
-.vscode/
-.idea/
-
-.DS_Store
-
-.env
-
+# Secrets
 *.vault
+.env
+.env.*
 
-ansible/*.retry
+# SSH Keys
+*.pem
+*.key
+id_rsa
+id_ed25519
+
+# Terraform (Future)
+.terraform/
+
+# Temporary
+tmp/
