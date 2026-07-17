@@ -72,9 +72,11 @@
     groups: docker
     append: true
   loop: "{{ docker_users }}"
+  when: not ansible_check_mode
 
 - name: Ensure Docker service is enabled and running
   ansible.builtin.service:
     name: docker
     state: started
     enabled: true
+  when: not ansible_check_mode

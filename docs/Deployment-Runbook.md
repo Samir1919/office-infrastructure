@@ -47,7 +47,7 @@ ansible-playbook playbooks/docker.yml --syntax-check
 ansible-playbook playbooks/docker.yml --check --limit crm01
 ```
 
-On a first run, check-mode verifies the Docker package index is reachable but intentionally skips the package-install task because the new repository is not yet present in the host’s active APT cache. The production canary apply performs the package installation only after owner approval.
+On a first run, check-mode verifies the Docker package index is reachable but intentionally skips the package-install, Docker-group membership, and Docker-service tasks because the new repository is not yet present in the host’s active APT cache. The production canary apply performs the package installation only after owner approval.
 
 After owner review and approval, apply first to `crm01`:
 
