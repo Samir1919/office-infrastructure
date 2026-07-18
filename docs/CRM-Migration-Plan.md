@@ -32,7 +32,9 @@ Do not use preview, `Current`, beta, release-candidate, or end-of-life releases.
 
 ## Approved target database
 
-The new CRM database on `db01` is **`office_crm`**. This is a new, project-owned database name selected for the Office Infrastructure Project; do not reuse the existing Windows database name. The source database remains unchanged until the separately approved final cutover.
+The new CRM production database on `db01` is **`crm_prod`**. This follows the project standard `<application>_<environment>`: future non-production environments use names such as `crm_dev` and `crm_staging`. Do not reuse the existing Windows database name. The source database remains unchanged until the separately approved final cutover.
+
+The database name identifies the application and environment, not the hosting VM. This prevents a database rename when services move between hosts. Put the database host in the backup artifact name instead, for example `db01_crm_prod_YYYY-MM-DD.archive.gz`.
 
 ## Facts required before implementation
 
@@ -41,7 +43,7 @@ Record and review these facts from the Windows source system before selecting Mo
 | Required fact | Why it is needed |
 |---|---|
 | MongoDB server version | Needed to validate dump/restore compatibility with the approved `db01` MongoDB 8.2.11 target. |
-| Current database name | Needed only to map its collections safely into the approved target database `office_crm`. |
+| Current database name | Needed only to map its collections safely into the approved target database `crm_prod`. |
 | Approximate database size and collection count | Needed to assess disk/RAM impact and validate the import. |
 | GridFS or Windows filesystem uploads | `mongodump` preserves GridFS; filesystem uploads require a separate, verified copy. |
 | Node.js major version | Needed to choose the matching runtime on `crm01`. |
@@ -66,8 +68,8 @@ mongodump --uri="mongodb://localhost:27017/<source_database>" \
   --archive=crm-test.archive --gzip
 
 mongorestore \
-  --uri="mongodb://<user>:<password>@db01:27017/office_crm?authSource=admin" \
-  --nsFrom="<source_database>.*" --nsTo="office_crm.*" \
+  --uri="mongodb://<user>:<password>@db01:27017/crm_prod?authSource=admin" \
+  --nsFrom="<source_database>.*" --nsTo="crm_prod.*" \
   --archive=crm-test.archive --gzip
 ```
 

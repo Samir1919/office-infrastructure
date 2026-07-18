@@ -113,7 +113,7 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 
 - The pilot scope is limited to `db01` MongoDB prerequisite work and `crm01` CRM canary preparation.
 - Both VMs retain their current baseline allocation of 2 vCPU / 2 GB / 32 GB; no VM resize is approved.
-- `db01` will use MongoDB `8.2.11`, the approved current stable patch release. The new CRM target database is `office_crm`; the Windows source MongoDB version, source database name, and document-upload storage method must be confirmed before migration.
+- `db01` will use MongoDB `8.2.11`, the approved current stable patch release. The new CRM production database is `crm_prod`; the Windows source MongoDB version, source database name, and document-upload storage method must be confirmed before migration.
 - `crm01` will use the latest production-supported Node.js 24.x LTS patch release; its package manager, start command, and required environment variables must be documented before application preparation.
 - No public DNS, Nginx Proxy Manager publication, router forwarding, ERP, FreePBX, or additional application deployment is included in this pilot.
 - Database hardening, backup design, production cutover, and the complete Phase 6 scope remain pending.
