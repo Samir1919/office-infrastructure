@@ -83,3 +83,15 @@ ansible db01 -m command -a 'ss -ltnp sport = :27017'
 ```
 
 Take the approved `db-installed` Proxmox snapshot after successful validation. The Windows source database `realestate_crm` remains untouched; importing it to `crm_prod` is a later, separately approved step.
+
+## CRM internal canary
+
+The CRM canary is restricted to `crm01`. It checks out the owner-approved GitHub commit, builds the Node.js 24 LTS Docker image, creates a mode-`0600` `.env.production` file from Vault values, and validates `/healthz` plus the MongoDB connection. It is internal-only and does not create a public Nginx Proxy Manager host.
+
+Run from `ansible/`:
+
+```bash
+ansible-playbook playbooks/crm.yml --syntax-check
+ansible-playbook playbooks/crm.yml --check --limit crm01
+ansible-playbook playbooks/crm.yml --limit crm01
+```

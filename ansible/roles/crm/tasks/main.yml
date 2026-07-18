@@ -1,0 +1,81 @@
+---
+- name: Verify approved CRM canary host and operating system
+  ansible.builtin.assert:
+    that:
+      - inventory_hostname == 'crm01'
+      - ansible_facts['distribution'] == 'Ubuntu'
+      - ansible_facts['distribution_release'] == 'noble'
+    fail_msg: CRM canary automation is approved only for Ubuntu 24.04 host crm01.
+
+- name: Ensure CRM deployment directory is present
+  ansible.builtin.file:
+    path: "{{ crm_deploy_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Check out the approved CRM revision
+  ansible.builtin.git:
+    repo: "{{ crm_repository }}"
+    dest: "{{ crm_deploy_path }}"
+    version: "{{ crm_git_revision }}"
+    update: true
+    force: false
+
+- name: Create CRM production environment file
+  ansible.builtin.template:
+    src: env.production.j2
+    dest: "{{ crm_deploy_path }}/.env.production"
+    owner: root
+    group: root
+    mode: '0600'
+  no_log: true
+
+- name: Build and start the non-public CRM canary
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - up
+      - --detach
+      - --build
+      - --remove-orphans
+  args:
+    chdir: "{{ crm_deploy_path }}"
+  register: crm_compose_up
+  changed_when: crm_compose_up.rc == 0
+  when: not ansible_check_mode
+
+- name: Wait for CRM health endpoint
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ crm_port }}/healthz"
+    status_code: 200
+    return_content: false
+  register: crm_health
+  retries: 12
+  delay: 5
+  until: crm_health.status == 200
+  when: not ansible_check_mode
+
+- name: Read recent CRM container logs
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - logs
+      - --no-color
+      - --tail=100
+      - app
+  args:
+    chdir: "{{ crm_deploy_path }}"
+  register: crm_container_logs
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Assert CRM connected to MongoDB
+  ansible.builtin.assert:
+    that:
+      - "'MongoDB Connected' in crm_container_logs.stdout"
+    fail_msg: CRM container started but did not confirm a MongoDB connection in its logs.
+  when: not ansible_check_mode
