@@ -160,6 +160,26 @@
   changed_when: false
   when: not ansible_check_mode
 
+- name: Synchronize the CRM application password from Vault
+  ansible.builtin.command:
+    argv:
+      - mongosh
+      - --quiet
+      - --host
+      - 127.0.0.1
+      - --authenticationDatabase
+      - admin
+      - --username
+      - "{{ mongodb_admin_username }}"
+      - --password
+      - "{{ vault_mongodb_admin_password }}"
+      - --eval
+      - >-
+        db.getSiblingDB({{ mongodb_crm_database | to_json }}).updateUser({{ mongodb_crm_username | to_json }}, {pwd: {{ vault_mongodb_crm_password | to_json }}, roles: [{role: 'readWrite', db: {{ mongodb_crm_database | to_json }}}]})
+  no_log: true
+  changed_when: false
+  when: not ansible_check_mode
+
 - name: Set default UFW incoming policy to deny
   community.general.ufw:
     direction: incoming
