@@ -113,8 +113,8 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 
 - The pilot scope is limited to `db01` MongoDB prerequisite work and `crm01` CRM canary preparation.
 - Both VMs retain their current baseline allocation of 2 vCPU / 2 GB / 32 GB; no VM resize is approved.
-- MongoDB version, source database name, and document-upload storage method must be confirmed before an Ansible role or migration procedure is implemented.
-- The CRM repository may be prepared from GitHub only after its Node.js runtime, package manager, start command, and required environment variables are documented.
+- `db01` will use the latest production-supported MongoDB 8.2.x patch release; source MongoDB version, database name, and document-upload storage method must be confirmed before its Ansible role or migration procedure is implemented.
+- `crm01` will use the latest production-supported Node.js 24.x LTS patch release; its package manager, start command, and required environment variables must be documented before application preparation.
 - No public DNS, Nginx Proxy Manager publication, router forwarding, ERP, FreePBX, or additional application deployment is included in this pilot.
 - Database hardening, backup design, production cutover, and the complete Phase 6 scope remain pending.
 - The pilot must record host/VM CPU, RAM, swap, and MongoDB health before moving toward production cutover.

@@ -16,13 +16,27 @@ Move the existing CRM application source from its GitHub repository to `crm01` a
 - Use a test import before any final data transfer. A production cutover requires separate owner approval.
 - Keep secrets out of Git. Store database credentials in Ansible Vault or an approved local secret store.
 
+## Approved software baseline
+
+Use the latest production-supported patch release available at implementation time within these approved release lines:
+
+| Component | Approved release line | Selection rationale |
+|---|---|---|
+| Operating system | Ubuntu Server 24.04 LTS | Existing approved VM baseline |
+| MongoDB on `db01` | MongoDB 8.2.x stable | Current stable MongoDB release line |
+| Node.js on `crm01` | Node.js 24.x LTS | Latest LTS line; suitable for production deployment |
+| Docker Engine on `crm01` | Docker official stable APT channel | Already installed and managed through the official repository |
+| Docker Compose | Docker Compose plugin from the official stable APT channel | Installed with Docker Engine and updated through the same channel |
+
+Do not use preview, `Current`, beta, release-candidate, or end-of-life releases. In particular, Node.js 26.x is a Current release rather than LTS, so it is not the CRM deployment target. Record the exact installed package versions in the implementation validation evidence.
+
 ## Facts required before implementation
 
 Record and review these facts from the Windows source system before selecting MongoDB packages or writing the deployment role:
 
 | Required fact | Why it is needed |
 |---|---|
-| MongoDB server version | The `db01` target must use a supported, compatible MongoDB major version. |
+| MongoDB server version | Needed to validate dump/restore compatibility with the approved `db01` MongoDB 8.2.x target. |
 | Current database name | Needed to create a deliberate new target database and namespace mapping. |
 | Approximate database size and collection count | Needed to assess disk/RAM impact and validate the import. |
 | GridFS or Windows filesystem uploads | `mongodump` preserves GridFS; filesystem uploads require a separate, verified copy. |
@@ -69,4 +83,4 @@ Stop the pilot if the host enters swap pressure, VM memory is persistently exhau
 
 ## Next implementation decision
 
-After the required source facts are recorded, prepare the version-pinned MongoDB role for `db01` and validate it in Ansible check mode. No installation, data migration, or public publication occurs until that design is reviewed and approved.
+After the required source facts are recorded, prepare the MongoDB 8.2.x role for `db01` and validate it in Ansible check mode. No installation, data migration, or public publication occurs until that design is reviewed and approved.
