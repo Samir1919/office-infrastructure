@@ -90,6 +90,13 @@ Take the approved `db-installed` Proxmox snapshot after successful validation. T
 
 The CRM canary is restricted to `crm01`. It checks out the owner-approved GitHub commit, builds the Node.js 24 LTS Docker image, creates a mode-`0600` `.env.production` file from Vault values, and validates `/healthz` plus the MongoDB connection. It is internal-only and does not create a public Nginx Proxy Manager host.
 
+The current session-store canary target is revision
+`e7a9ddbf8e8e3b12ba187906484e813150a3490f`. It stores encrypted sessions in
+`crm_prod.sessions` for 12 hours and creates a TTL index. This deployment does
+not reset or remigrate `crm_prod`; never pass `crm_reset_canary_database=true`.
+Rollback is the prior revision
+`ae9539ca575df9ffdafe047c49b20fff2473b858` followed by the same playbook.
+
 The canary is currently accessed by internal HTTP, so it explicitly sets `SESSION_COOKIE_SECURE=false`; otherwise a browser cannot retain the login session cookie over HTTP. This override is canary-only. The CRM source defaults to secure cookies in production, and a future Nginx Proxy Manager HTTPS deployment must remove the override or set `SESSION_COOKIE_SECURE=true` before publication.
 
 All application containers must explicitly receive the project `timezone` value (`Asia/Dhaka` currently) through their Compose environment. Docker containers otherwise default to UTC even when their VM uses the correct local timezone. The CRM canary is the first deployed application to use this standard; future Website, ERP, and Nginx Proxy Manager deployments must apply it in their own service templates.
@@ -101,6 +108,37 @@ ansible-playbook playbooks/crm.yml --syntax-check
 ansible-playbook playbooks/crm.yml --check --limit crm01
 ansible-playbook playbooks/crm.yml --limit crm01
 ```
+
+After the session-store deployment:
+
+1. Confirm `/healthz`, the pinned Git revision, container health, and clean logs.
+2. Sign in once through the internal HTTP canary and confirm a document exists
+   in `crm_prod.sessions` with an `expires` TTL index; never print its encrypted
+   payload or cookie ID.
+3. Restart only the CRM application container, wait for health, then refresh the
+   same browser page. The authenticated session must remain valid.
+4. Confirm the 275 leads and 4 users remain unchanged, MongoDB is active, and
+   both VMs have zero active swap use.
+5. Roll back immediately for login/CSRF failure, missing TTL index, session loss,
+   application errors, database-count drift, or resource pressure.
+
+Run the non-restart metadata validation immediately after deployment:
+
+```bash
+ansible-playbook playbooks/crm-session-validate.yml --limit crm01
+```
+
+After the owner signs in once, run the restart gate. This command restarts only
+the CRM application container; it does not restart MongoDB or modify CRM data:
+
+```bash
+ansible-playbook playbooks/crm-session-validate.yml --limit crm01 \
+  -e crm_session_require_document=true \
+  -e crm_session_restart=true
+```
+
+The owner must then refresh the same authenticated browser page and confirm it
+remains signed in. Database evidence alone does not replace this browser check.
 
 For the one-time admin bootstrap on the empty canary database only, run:
 

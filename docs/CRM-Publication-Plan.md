@@ -1,6 +1,6 @@
 # CRM Access and HTTPS Publication Plan
 
-**Status:** Architecture and security review prepared; no publication approved
+**Status:** MongoDB-backed session design approved and merged; internal canary validation pending; no publication approved
 **Scope:** Access path from users to `crm01` through `npm01`
 **Current state:** Internal HTTP canary at `crm01:3000`; `npm01` has Docker baseline but no deployed Nginx Proxy Manager service or CRM proxy host
 
@@ -25,15 +25,25 @@ No direct port forwarding to `crm01`, SSH, Proxmox, or MongoDB is permitted. Ngi
 
 ## Application readiness review — 2026-07-19
 
-The pinned CRM revision already sets Express `trust proxy` in production, supports `SESSION_COOKIE_SECURE`, uses `HttpOnly` and `SameSite=Lax` session cookies, and applies CSRF protection. These are compatible with HTTPS termination at one trusted reverse proxy.
+The previously deployed CRM baseline sets Express `trust proxy` in production, supports `SESSION_COOKIE_SECURE`, uses `HttpOnly` and `SameSite=Lax` session cookies, and applies CSRF protection. These are compatible with HTTPS termination at one trusted reverse proxy.
 
-The same revision uses `express-session` without an explicit production session store, so it falls back to `MemoryStore`. The official Express documentation states that this default is not designed for production, leaks memory under most conditions, and does not scale past one process. The application also has no declared login rate-limiter or HTTP security-header middleware, and no MFA capability is documented. See the [official Express session documentation](https://expressjs.com/en/resources/middleware/session/).
+That historical baseline used `express-session` without an explicit production session store, so it fell back to `MemoryStore`. The official Express documentation states that this default is not designed for production, leaks memory under most conditions, and does not scale past one process. The application still has no declared login rate-limiter or HTTP security-header middleware, and no MFA capability is documented. See the [official Express session documentation](https://expressjs.com/en/resources/middleware/session/).
 
-Therefore unrestricted public login is blocked pending application hardening.
+The owner subsequently approved the recommended MongoDB-backed design. CRM
+revision `e7a9ddbf8e8e3b12ba187906484e813150a3490f` was merged after tests and CI.
+It encrypts session payloads with the existing Vault-managed `SESSION_SECRET`,
+stores them in `crm_prod.sessions`, applies a 12-hour rolling lifetime and a
+MongoDB TTL index, and keeps the internal HTTP cookie override explicit. The
+existing `crm_app` account already has the approved `readWrite` scope on
+`crm_prod`, so no new database privilege or firewall rule is introduced.
+
+Canary deployment must verify that a browser login remains valid across an
+application-container restart. Until that validation and the remaining
+hardening items pass, unrestricted public login remains blocked.
 
 ## Required hardening before public HTTPS
 
-1. Replace `MemoryStore` with an approved persistent session store.
+1. Replace `MemoryStore` with an approved persistent session store. **Merged; canary validation pending.**
 2. Add login and authentication rate limiting with a documented lockout/abuse policy.
 3. Add and validate security headers, including HSTS only after HTTPS is stable.
 4. Remove the internal override or set `SESSION_COOKIE_SECURE=true` before proxy validation.
@@ -49,7 +59,11 @@ Therefore unrestricted public login is blocked pending application hardening.
 | MongoDB-backed store on `db01` | Uses existing protected database host; persistent sessions; no new VM | Adds dependency and a session collection; requires scoped user/retention/index design and backup exclusion/retention decision | Recommended for current hardware, subject to owner approval |
 | Redis session store | Common dedicated session design | Adds another service, memory use, security policy, and recovery scope on constrained hardware | Defer |
 
-Selecting MongoDB-backed sessions changes application dependencies and database usage. It requires documentation, code review, tests, owner approval, canary deployment, and rollback before publication.
+The MongoDB-backed design is approved for the constrained pilot. Session data
+is ephemeral and is excluded from future `crm_prod` application-data archives;
+recovery intentionally signs users out. Rollback pins the prior revision
+`ae9539ca575df9ffdafe047c49b20fff2473b858`; the unused TTL-managed `sessions`
+collection may remain without affecting the prior application.
 
 ## Nginx Proxy Manager prerequisites
 
@@ -96,7 +110,7 @@ Stop publication work for any authentication bypass, broken CSRF/session behavio
 ## Owner decisions required
 
 1. Choose internal-only, VPN-only, or eventual public HTTPS access.
-2. If public HTTPS is required, approve MongoDB-backed session design for detailed implementation planning or choose another session store.
+2. MongoDB-backed session design approved; complete internal canary validation before treating this gate as closed.
 3. Provide the intended CRM FQDN and DNS provider.
 4. Authorize read-only router/public-IP/CGNAT fact collection before any edge change.
 

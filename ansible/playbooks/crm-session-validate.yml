@@ -1,0 +1,175 @@
+---
+- name: Validate CRM MongoDB session persistence on the internal canary
+  hosts: crm01
+  become: true
+
+  vars_files:
+    - ../group_vars/all/main.yml
+    - ../group_vars/all/vault.yml
+    - ../group_vars/all/mongodb-secrets.yml
+    - ../roles/crm/defaults/main.yml
+
+  vars:
+    crm_session_expected_revision: e7a9ddbf8e8e3b12ba187906484e813150a3490f
+    crm_session_restart: false
+    crm_session_require_document: false
+
+  pre_tasks:
+    - name: Verify validation scope and destructive guards
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'crm01'
+          - crm_database_name == 'crm_prod'
+          - not (crm_reset_canary_database | bool)
+        fail_msg: >-
+          Session validation is restricted to crm01 and crm_prod and must never
+          enable the canary database reset.
+
+  tasks:
+    - name: Read deployed CRM revision
+      ansible.builtin.command:
+        argv:
+          - git
+          - -C
+          - "{{ crm_deploy_path }}"
+          - rev-parse
+          - HEAD
+      register: crm_session_deployed_revision
+      changed_when: false
+
+    - name: Require the approved session-store revision
+      ansible.builtin.assert:
+        that:
+          - crm_session_deployed_revision.stdout | trim == crm_session_expected_revision
+        fail_msg: CRM canary is not running the approved session-store revision.
+
+    - name: Check CRM health before session validation
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ crm_port }}/healthz"
+        status_code: 200
+        return_content: false
+
+    - name: Inspect CRM session metadata before optional restart
+      ansible.builtin.command:
+        argv:
+          - mongosh
+          - --quiet
+          - --host
+          - 127.0.0.1
+          - --authenticationDatabase
+          - "{{ crm_database_name }}"
+          - --username
+          - "{{ crm_database_user }}"
+          - --password
+          - "{{ vault_mongodb_crm_password }}"
+          - --eval
+          - >-
+            const target = db.getSiblingDB({{ crm_database_name | to_json }});
+            const exists = target.getCollectionNames().includes('sessions');
+            const indexes = exists ? target.sessions.getIndexes() : [];
+            print(JSON.stringify({
+              sessionCollection: exists,
+              sessionCount: exists ? target.sessions.countDocuments({}) : 0,
+              ttlIndex: indexes.some((index) => index.key.expires === 1 && index.expireAfterSeconds === 0),
+              leads: target.leads.countDocuments({}),
+              users: target.users.countDocuments({})
+            }));
+      delegate_to: db01
+      register: crm_session_before_raw
+      changed_when: false
+      no_log: true
+
+    - name: Parse pre-restart session evidence
+      ansible.builtin.set_fact:
+        crm_session_before: "{{ crm_session_before_raw.stdout | from_json }}"
+      no_log: true
+
+    - name: Require session collection, TTL index, and unchanged CRM records
+      ansible.builtin.assert:
+        that:
+          - crm_session_before.sessionCollection | bool
+          - crm_session_before.ttlIndex | bool
+          - crm_session_before.leads | int == 275
+          - crm_session_before.users | int == 4
+          - not (crm_session_require_document | bool) or crm_session_before.sessionCount | int > 0
+        fail_msg: >-
+          Session metadata, TTL index, login document, or protected CRM record
+          counts did not match the approved canary state.
+
+    - name: Restart only the CRM application container
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - restart
+          - app
+      args:
+        chdir: "{{ crm_deploy_path }}"
+      when: crm_session_restart | bool
+      changed_when: true
+
+    - name: Wait for CRM health after restart
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ crm_port }}/healthz"
+        status_code: 200
+        return_content: false
+      register: crm_session_health_after_restart
+      retries: 12
+      delay: 5
+      until: crm_session_health_after_restart.status == 200
+      when: crm_session_restart | bool
+
+    - name: Inspect CRM session metadata after restart
+      ansible.builtin.command:
+        argv:
+          - mongosh
+          - --quiet
+          - --host
+          - 127.0.0.1
+          - --authenticationDatabase
+          - "{{ crm_database_name }}"
+          - --username
+          - "{{ crm_database_user }}"
+          - --password
+          - "{{ vault_mongodb_crm_password }}"
+          - --eval
+          - >-
+            const target = db.getSiblingDB({{ crm_database_name | to_json }});
+            print(JSON.stringify({
+              sessionCount: target.sessions.countDocuments({}),
+              leads: target.leads.countDocuments({}),
+              users: target.users.countDocuments({})
+            }));
+      delegate_to: db01
+      register: crm_session_after_raw
+      changed_when: false
+      no_log: true
+      when: crm_session_restart | bool
+
+    - name: Parse post-restart session evidence
+      ansible.builtin.set_fact:
+        crm_session_after: "{{ crm_session_after_raw.stdout | from_json }}"
+      no_log: true
+      when: crm_session_restart | bool
+
+    - name: Require session and CRM records to persist across restart
+      ansible.builtin.assert:
+        that:
+          - crm_session_after.sessionCount | int == crm_session_before.sessionCount | int
+          - crm_session_after.leads | int == 275
+          - crm_session_after.users | int == 4
+      when: crm_session_restart | bool
+
+    - name: Report sanitized session validation evidence
+      ansible.builtin.debug:
+        msg:
+          revision: "{{ crm_session_deployed_revision.stdout | trim }}"
+          session_collection: "{{ crm_session_before.sessionCollection }}"
+          ttl_index: "{{ crm_session_before.ttlIndex }}"
+          sessions_before_restart: "{{ crm_session_before.sessionCount }}"
+          sessions_after_restart: >-
+            {{ crm_session_after.sessionCount
+               if (crm_session_restart | bool)
+               else 'not requested' }}
+          leads: "{{ crm_session_before.leads }}"
+          users: "{{ crm_session_before.users }}"

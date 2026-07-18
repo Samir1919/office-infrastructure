@@ -33,6 +33,12 @@ The Ansible playbook `ansible/playbooks/mongodb-backup.yml`:
 - validates non-zero size and matching SHA-256 on `db01` and the control node; and
 - removes the remote temporary archive and credential workspace after the transfer attempt.
 
+The ephemeral `crm_prod.sessions` collection is excluded from new archives.
+It contains encrypted login state rather than authoritative CRM records, has a
+12-hour TTL, and must not be restored during application recovery. A restored
+CRM starts with no active sessions, so all users must authenticate again. The
+first verified archive predates the session-store deployment and is unchanged.
+
 Run from `ansible/` with the Keychain-backed Vault password:
 
 ```bash

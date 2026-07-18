@@ -72,6 +72,7 @@
               - "{{ mongodb_backup_workspace.path }}/mongodump.yml"
               - --db
               - "{{ mongodb_backup_database }}"
+              - --excludeCollection=sessions
               - --archive={{ mongodb_backup_workspace.path }}/{{ mongodb_backup_filename }}
               - --gzip
           register: mongodb_backup_dump
@@ -136,6 +137,7 @@
               bytes: "{{ mongodb_backup_local_archive.stat.size }}"
               sha256: "{{ mongodb_backup_local_archive.stat.checksum }}"
               mongodump: "{{ mongodb_backup_tool_version.stdout_lines[0] }}"
+              excluded_collection: sessions
 
       always:
         - name: Remove protected temporary backup workspace
