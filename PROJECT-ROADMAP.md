@@ -8,8 +8,8 @@
 |---|---|
 | Project | Office Infrastructure Project |
 | Status | Active |
-| Last consolidated | 2026-07-17 |
-| Current phase | Service deployment preparation, capacity review |
+| Last consolidated | 2026-07-18 |
+| Current phase | Constrained CRM and MongoDB pilot preparation |
 | Maintainer | Project Owner |
 
 ## Objective and architecture principles
@@ -107,6 +107,18 @@ Docker is planned only for `crm01`, `web01`, `erp01`, and `npm01`. Do not instal
 
 The current 2 GB / 32 GB allocation is a baseline, not final service sizing. Before application deployment, review service resources and host capacity. The original target profile—CRM 4 GB/40 GB, database 8 GB/100 GB+, PBX 4 GB/40 GB, website 2 GB/30 GB, ERP 4 GB/40 GB, NPM 2 GB/20 GB, monitoring 2 GB/20 GB—exceeds the present 16 GB host if applied together. No resource increase may occur without a documented capacity decision.
 
+### Approved constrained CRM pilot
+
+The owner has approved a limited pilot on the current 16 GB host so that the existing Node.js CRM can begin preparation before future hardware work. This is an exception for preparation and canary validation only; it does not approve the complete Phase 5 or Phase 6 production rollout.
+
+- The pilot scope is limited to `db01` MongoDB prerequisite work and `crm01` CRM canary preparation.
+- Both VMs retain their current baseline allocation of 2 vCPU / 2 GB / 32 GB; no VM resize is approved.
+- MongoDB version, source database name, and document-upload storage method must be confirmed before an Ansible role or migration procedure is implemented.
+- The CRM repository may be prepared from GitHub only after its Node.js runtime, package manager, start command, and required environment variables are documented.
+- No public DNS, Nginx Proxy Manager publication, router forwarding, ERP, FreePBX, or additional application deployment is included in this pilot.
+- Database hardening, backup design, production cutover, and the complete Phase 6 scope remain pending.
+- The pilot must record host/VM CPU, RAM, swap, and MongoDB health before moving toward production cutover.
+
 ## Current automation state
 
 - macOS control node: Homebrew Ansible 14.2.0 on Python 3.14.6.
@@ -118,14 +130,15 @@ The current 2 GB / 32 GB allocation is a baseline, not final service sizing. Bef
 
 ## Next approved implementation step
 
-1. Review the 16 GB Proxmox host capacity against the target application resource profiles.
-2. Document options, risks, and the approved resource decision before deploying any application.
-3. After owner approval, create the Phase 5 application deployment design and canary order.
+1. Collect the existing Windows CRM source facts: MongoDB version, source database name, document-upload storage method, Node.js version, package manager, and application start command.
+2. Create and validate a version-pinned MongoDB design/Ansible role for `db01` in check mode; do not migrate production data yet.
+3. Prepare the `crm01` Node.js Compose and environment design using the documented source facts, then run a non-public canary and monitor capacity.
+4. Complete the full Phase 5 and Phase 6 rollout only after a separate owner-approved resource and cutover decision.
 
 ## Supporting references
 
 - [VM inventory](docs/VM-Inventory.md)
 - [Network design](docs/Network-Design.md)
-- [Capacity review](docs/Capacity-Review.md), [Storage](docs/Storage-Design.md), [security](docs/Security-Baseline.md), and [backup](docs/Backup-Strategy.md)
+- [Capacity review](docs/Capacity-Review.md), [CRM pilot migration plan](docs/CRM-Migration-Plan.md), [Storage](docs/Storage-Design.md), [security](docs/Security-Baseline.md), and [backup](docs/Backup-Strategy.md)
 - [Monitoring](docs/Monitoring-Strategy.md), [deployment runbook](docs/Deployment-Runbook.md), and [disaster recovery](docs/Disaster-Recovery.md)
 - [Architecture decisions](docs/ADR/) and [change history](docs/CHANGELOG.md)

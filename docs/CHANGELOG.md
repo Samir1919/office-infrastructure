@@ -2,6 +2,18 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-18 — Constrained CRM pilot preparation
+
+### Approved
+
+- A non-public, resource-constrained preparation pilot for `db01` MongoDB and `crm01` Node.js CRM.
+- Retaining the existing 2 vCPU / 2 GB / 32 GB VM baseline during the pilot; no resource resize is approved.
+
+### Documented
+
+- Source-fact requirements and safe MongoDB migration approach for moving the Windows CRM data.
+- Capacity monitoring and cutover boundaries that keep full Phase 5 and Phase 6 deployment pending.
+
 ## 2026-07-18 — Remote administration and secure external access policy
 
 ### Added

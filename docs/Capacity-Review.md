@@ -1,6 +1,6 @@
 # Proxmox Host Capacity Review
 
-**Status:** Decision required before Phase 5 application deployment  
+**Status:** Full production sizing decision pending; limited CRM pilot approved
 **Scope:** `pve01` capacity only; this document does not change VM resources or architecture.
 
 ## Current confirmed capacity
@@ -43,6 +43,21 @@ The 26 GB target excludes Proxmox host memory, operating-system cache, growth he
 
 **Conclusion:** 16 GB cannot safely run the approved target profile. A 32 GB host would leave little operating headroom after the 30 GB target-plus-host-reserve requirement. No application should be deployed at its target resource profile until the owner approves a capacity decision.
 
+## Approved constrained CRM pilot
+
+The owner has approved a preparation and canary exception while the current hardware remains unchanged. This does **not** change the target service profile or approve a VM resize.
+
+| Pilot boundary | Approved state |
+|---|---|
+| In scope | `db01` MongoDB prerequisite design and `crm01` Node.js CRM canary preparation |
+| VM resources | Keep both VMs at the current 2 vCPU / 2 GB / 32 GB baseline |
+| Public access | None; no DNS, NPM publication, or router forwarding |
+| Migration | Test import only after source MongoDB facts are documented; no production cutover yet |
+| Other services | ERP, FreePBX, website, NPM publication, monitoring rollout remain out of scope |
+| Required observation | Host/VM CPU, memory, swap, disk/LVM-Thin capacity, and MongoDB health |
+
+If sustained memory pressure, swap activity, disk pressure, or unacceptable CRM/MongoDB response time appears, stop the pilot and defer further deployment until hardware is upgraded. The recommended 48 GB minimum and 64 GB preferred planning targets remain unchanged.
+
 ## Options and trade-offs
 
 | Option | Benefits | Risks / limitations |
@@ -70,7 +85,7 @@ This is a recommendation, not an approved resource change. The owner must choose
 
 | Decision item | Owner decision |
 |---|---|
-| Selected host memory target | Pending |
+| Selected host memory target | Pending; 48 GB minimum planning target, 64 GB preferred |
 | Hardware compatibility confirmed | Pending |
 | Maintenance window | Pending |
-| VM resize plan approved | Pending |
+| VM resize plan approved | Not approved; existing allocation retained for limited CRM pilot |
