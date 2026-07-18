@@ -1,0 +1,210 @@
+---
+- name: Validate the CRM MongoDB backup in an isolated database
+  hosts: database
+  become: true
+
+  vars_files:
+    - ../group_vars/all/main.yml
+    - ../group_vars/all/vault.yml
+    - ../group_vars/all/mongodb-secrets.yml
+
+  vars:
+    mongodb_restore_source_database: crm_prod
+    mongodb_restore_test_database: crm_restore_test
+    mongodb_restore_admin_username: mongodb_admin
+
+  pre_tasks:
+    - name: Verify restore-test scope and archive input
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'db01'
+          - mongodb_restore_controller_archive is defined
+          - mongodb_restore_controller_archive is string
+          - mongodb_restore_controller_archive is match('^/[^/].+')
+          - mongodb_restore_controller_archive != '/'
+          - mongodb_restore_test_database != mongodb_restore_source_database
+        fail_msg: >-
+          Run only for db01 with an explicit absolute off-host archive path,
+          and never target crm_prod.
+
+    - name: Inspect the off-host archive
+      ansible.builtin.stat:
+        path: "{{ mongodb_restore_controller_archive }}"
+        checksum_algorithm: sha256
+      delegate_to: localhost
+      become: false
+      register: mongodb_restore_local_archive
+
+    - name: Require a non-empty off-host archive
+      ansible.builtin.assert:
+        that:
+          - mongodb_restore_local_archive.stat.exists
+          - mongodb_restore_local_archive.stat.isreg
+          - mongodb_restore_local_archive.stat.size | int > 0
+          - mongodb_restore_local_archive.stat.checksum | length == 64
+        fail_msg: The specified off-host archive is missing, empty, or invalid.
+
+  tasks:
+    - name: Restore and validate the isolated CRM database
+      block:
+        - name: Create protected temporary restore workspace
+          ansible.builtin.tempfile:
+            state: directory
+            path: /var/tmp
+            prefix: crm-restore-test-
+          register: mongodb_restore_workspace
+
+        - name: Create protected MongoDB tool credential file
+          ansible.builtin.copy:
+            dest: "{{ mongodb_restore_workspace.path }}/mongodb-tools.yml"
+            owner: root
+            group: root
+            mode: '0600'
+            content: |
+              password: {{ vault_mongodb_admin_password | to_json }}
+              uri: {{ ('mongodb://' ~ mongodb_restore_admin_username ~ '@127.0.0.1:27017/?authSource=admin') | to_json }}
+          no_log: true
+
+        - name: Copy the off-host archive to the protected workspace
+          ansible.builtin.copy:
+            src: "{{ mongodb_restore_controller_archive }}"
+            dest: "{{ mongodb_restore_workspace.path }}/crm-backup.archive.gz"
+            owner: root
+            group: root
+            mode: '0600'
+
+        - name: Inspect the uploaded archive
+          ansible.builtin.stat:
+            path: "{{ mongodb_restore_workspace.path }}/crm-backup.archive.gz"
+            checksum_algorithm: sha256
+          register: mongodb_restore_remote_archive
+
+        - name: Verify uploaded archive size and SHA-256
+          ansible.builtin.assert:
+            that:
+              - mongodb_restore_remote_archive.stat.size == mongodb_restore_local_archive.stat.size
+              - mongodb_restore_remote_archive.stat.checksum == mongodb_restore_local_archive.stat.checksum
+            fail_msg: Uploaded restore-test archive failed size or SHA-256 validation.
+
+        - name: Verify the restore-test database is unused
+          ansible.builtin.command:
+            argv:
+              - mongosh
+              - --quiet
+              - --host
+              - 127.0.0.1
+              - --authenticationDatabase
+              - admin
+              - --username
+              - "{{ mongodb_restore_admin_username }}"
+              - --password
+              - "{{ vault_mongodb_admin_password }}"
+              - --eval
+              - >-
+                db.getSiblingDB({{ mongodb_restore_test_database | to_json }}).getCollectionNames().length
+          register: mongodb_restore_test_existing
+          changed_when: false
+          no_log: true
+
+        - name: Refuse to overwrite an existing restore-test database
+          ansible.builtin.assert:
+            that:
+              - mongodb_restore_test_existing.stdout | trim == '0'
+            fail_msg: >-
+              crm_restore_test already contains collections. This playbook will
+              not overwrite or drop an existing database.
+
+        - name: Read sanitized source collection manifest
+          ansible.builtin.command:
+            argv:
+              - mongosh
+              - --quiet
+              - --host
+              - 127.0.0.1
+              - --authenticationDatabase
+              - admin
+              - --username
+              - "{{ mongodb_restore_admin_username }}"
+              - --password
+              - "{{ vault_mongodb_admin_password }}"
+              - --eval
+              - >-
+                const d=db.getSiblingDB({{ mongodb_restore_source_database | to_json }});
+                const r=d.getCollectionNames().filter(n=>!n.startsWith('system.')).sort().map(n=>({collection:n,documents:d.getCollection(n).countDocuments({}),indexes:d.getCollection(n).getIndexes().length}));
+                print(JSON.stringify(r));
+          register: mongodb_restore_source_manifest_raw
+          changed_when: false
+          no_log: true
+
+        - name: Parse sanitized source manifest
+          ansible.builtin.set_fact:
+            mongodb_restore_source_manifest: "{{ mongodb_restore_source_manifest_raw.stdout | from_json }}"
+          no_log: true
+
+        - name: Restore archive into isolated database
+          ansible.builtin.command:
+            argv:
+              - mongorestore
+              - --config
+              - "{{ mongodb_restore_workspace.path }}/mongodb-tools.yml"
+              - --archive={{ mongodb_restore_workspace.path }}/crm-backup.archive.gz
+              - --gzip
+              - --nsInclude={{ mongodb_restore_source_database }}.*
+              - --nsFrom={{ mongodb_restore_source_database }}.*
+              - --nsTo={{ mongodb_restore_test_database }}.*
+              - --stopOnError
+          register: mongodb_restore_execution
+          changed_when: mongodb_restore_execution.rc == 0
+
+        - name: Read sanitized restored collection manifest
+          ansible.builtin.command:
+            argv:
+              - mongosh
+              - --quiet
+              - --host
+              - 127.0.0.1
+              - --authenticationDatabase
+              - admin
+              - --username
+              - "{{ mongodb_restore_admin_username }}"
+              - --password
+              - "{{ vault_mongodb_admin_password }}"
+              - --eval
+              - >-
+                const d=db.getSiblingDB({{ mongodb_restore_test_database | to_json }});
+                const r=d.getCollectionNames().filter(n=>!n.startsWith('system.')).sort().map(n=>({collection:n,documents:d.getCollection(n).countDocuments({}),indexes:d.getCollection(n).getIndexes().length}));
+                print(JSON.stringify(r));
+          register: mongodb_restore_target_manifest_raw
+          changed_when: false
+          no_log: true
+
+        - name: Parse sanitized restored manifest
+          ansible.builtin.set_fact:
+            mongodb_restore_target_manifest: "{{ mongodb_restore_target_manifest_raw.stdout | from_json }}"
+          no_log: true
+
+        - name: Verify collection, document, and index parity
+          ansible.builtin.assert:
+            that:
+              - mongodb_restore_source_manifest | length > 0
+              - mongodb_restore_target_manifest == mongodb_restore_source_manifest
+            fail_msg: Restored collection, document, or index manifest differs from crm_prod.
+
+        - name: Report sanitized restore-test evidence
+          ansible.builtin.debug:
+            msg:
+              archive_sha256: "{{ mongodb_restore_local_archive.stat.checksum }}"
+              source_database: "{{ mongodb_restore_source_database }}"
+              test_database: "{{ mongodb_restore_test_database }}"
+              manifest: "{{ mongodb_restore_target_manifest }}"
+              cleanup: Test database retained; deletion requires separate owner approval.
+
+      always:
+        - name: Remove protected temporary restore workspace
+          ansible.builtin.file:
+            path: "{{ mongodb_restore_workspace.path }}"
+            state: absent
+          when:
+            - mongodb_restore_workspace is defined
+            - mongodb_restore_workspace.path is defined
+

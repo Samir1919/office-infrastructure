@@ -61,3 +61,36 @@ MongoDB recommends the `--config` file for sensitive `mongodump` values because 
 | Remote cleanup | Temporary credential and archive workspace removed; no matching workspace remained in `/var/tmp` |
 
 The archive was created without modifying `crm_prod`. Its existence and checksum are validated; restore recoverability is not yet validated.
+
+## CRM restore-test procedure
+
+The owner approved an isolated restore test on 2026-07-19. `ansible/playbooks/mongodb-restore-test.yml` uploads an explicitly selected off-host archive to a protected temporary workspace on `db01`, confirms its SHA-256, refuses to continue if `crm_restore_test` already contains any collection, and restores only from `crm_prod.*` to `crm_restore_test.*`. It then compares the sorted collection names, document counts, and index counts between `crm_prod` and `crm_restore_test`.
+
+The playbook does not use `--drop`, does not target `crm_prod`, removes the temporary credential/archive workspace, and deliberately retains `crm_restore_test` after validation. Deleting that test database requires separate owner approval.
+
+```bash
+ANSIBLE_VAULT_PASSWORD_FILE=../scripts/ansible-vault-keychain.sh \
+ansible-playbook playbooks/mongodb-restore-test.yml \
+  --limit db01 \
+  -e mongodb_restore_controller_archive=/Users/samir/Backups/office-infrastructure/mongodb/db01_crm_prod_20260719T023102.archive.gz
+```
+
+The namespace-remapping design follows MongoDB's documented `--archive`, `--gzip`, `--nsInclude`, `--nsFrom`, `--nsTo`, and `--stopOnError` behaviour. See the [official `mongorestore` documentation](https://www.mongodb.com/docs/database-tools/mongorestore/).
+
+### First restore-test evidence — 2026-07-19
+
+The verified archive was restored successfully into `crm_restore_test`. The source and restored manifests matched exactly:
+
+| Collection | Documents | Indexes |
+|---|---:|---:|
+| `auditlogs` | 7 | 4 |
+| `leadcounters` | 1 | 1 |
+| `leads` | 275 | 6 |
+| `permissions` | 17 | 2 |
+| `roles` | 3 | 2 |
+| `tasks` | 0 | 1 |
+| `users` | 4 | 2 |
+
+Archive SHA-256 remained `6b8d943368e068046624a45125a924b1ce8f258ef83c68d00fd73bcf99d152a0` after upload. The protected remote workspace was removed. `mongod` remained active; `db01` reported 1,429 MB available memory and zero swap use; the CRM `/healthz` endpoint returned `200`. The audit-only Proxmox check reported 5.57 GiB of 13.54 GiB usable host memory used, zero swap use, low load, and 745.53 GiB available on `local-lvm`. Only `crm01` and `db01` were running during this point-in-time observation.
+
+This proves that the first archive can be restored with collection, document, and index parity. `crm_restore_test` is retained pending separate cleanup approval; `crm_prod` was not changed.

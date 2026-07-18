@@ -2,6 +2,27 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — CRM isolated restore test prepared
+
+### Approved
+
+- Restore the verified off-host `crm_prod` archive into isolated database `crm_restore_test` without altering `crm_prod`.
+- Retain the test database after validation; cleanup remains separately approval-gated.
+
+### Prepared
+
+- Added a Vault-backed restore-test playbook with local/remote archive checksum validation and protected temporary files.
+- Added a hard stop when `crm_restore_test` already contains collections and excluded `--drop` from the procedure.
+- Added parity checks for sorted collection names, document counts, and index counts between `crm_prod` and the restored database.
+
+### Implemented and validated
+
+- Restored the verified archive into isolated `crm_restore_test` without using `--drop` or changing `crm_prod`.
+- Matched all seven collection manifests exactly: `auditlogs` 7/4, `leadcounters` 1/1, `leads` 275/6, `permissions` 17/2, `roles` 3/2, `tasks` 0/1, and `users` 4/2, shown as documents/indexes.
+- Revalidated archive SHA-256 `6b8d943368e068046624a45125a924b1ce8f258ef83c68d00fd73bcf99d152a0` after upload and removed the protected temporary workspace.
+- Confirmed `mongod` active, `db01` with 1,429 MB available memory and zero swap use, CRM `/healthz` status `200`, and healthy audit-only host capacity evidence after restore.
+- Retained `crm_restore_test` pending separate cleanup approval.
+
 ## 2026-07-19 — CRM off-host backup automation prepared
 
 ### Approved
