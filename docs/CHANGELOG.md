@@ -2,6 +2,14 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — Bilingual new-control-node guide
+
+### Updated
+
+- Added a complete Bengali version beside the existing English new-control-node installation and Vault-recovery guide.
+- Added language navigation inside the same guide; no competing installation file was created.
+- Updated the root README link to identify the guide as English and Bengali.
+
 ## 2026-07-19 — Vault recovery installation guidance
 
 ### Added
