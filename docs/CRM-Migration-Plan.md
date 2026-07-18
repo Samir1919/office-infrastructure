@@ -36,6 +36,18 @@ The new CRM production database on `db01` is **`crm_prod`**. This follows the pr
 
 The database name identifies the application and environment, not the hosting VM. This prevents a database rename when services move between hosts. Put the database host in the backup artifact name instead, for example `db01_crm_prod_YYYY-MM-DD.archive.gz`.
 
+### Confirmed source-to-target mapping
+
+| Item | Confirmed value |
+|---|---|
+| Source host | Local Windows CRM PC |
+| Source MongoDB | MongoDB 7.0 |
+| Source database | `realestate_crm` |
+| Target host | `db01` |
+| Target MongoDB | MongoDB 8.2.11 |
+| Target database | `crm_prod` |
+| CRM Node.js runtime | Node.js 24.18.0 |
+
 ## Facts required before implementation
 
 Record and review these facts from the Windows source system before selecting MongoDB packages or writing the deployment role:
@@ -64,12 +76,12 @@ Use MongoDB-native tools, not manual document export, so indexes and GridFS data
 Example commands, with placeholders only:
 
 ```bash
-mongodump --uri="mongodb://localhost:27017/<source_database>" \
+mongodump --uri="mongodb://localhost:27017/realestate_crm" \
   --archive=crm-test.archive --gzip
 
 mongorestore \
   --uri="mongodb://<user>:<password>@db01:27017/crm_prod?authSource=admin" \
-  --nsFrom="<source_database>.*" --nsTo="crm_prod.*" \
+  --nsFrom="realestate_crm.*" --nsTo="crm_prod.*" \
   --archive=crm-test.archive --gzip
 ```
 
