@@ -1,0 +1,103 @@
+# CRM Access and HTTPS Publication Plan
+
+**Status:** Architecture and security review prepared; no publication approved
+**Scope:** Access path from users to `crm01` through `npm01`
+**Current state:** Internal HTTP canary at `crm01:3000`; `npm01` has Docker baseline but no deployed Nginx Proxy Manager service or CRM proxy host
+
+## Current approved design
+
+Public application traffic, if approved, follows one path only:
+
+```text
+Internet → Router TCP 80/443 → npm01 → http://192.168.10.101:3000
+```
+
+No direct port forwarding to `crm01`, SSH, Proxmox, or MongoDB is permitted. Nginx Proxy Manager administration must remain LAN/VPN-only and must never be forwarded publicly.
+
+## Access alternatives
+
+| Option | Benefits | Risks / limitations | Assessment |
+|---|---|---|---|
+| Keep internal-only | Lowest exposure; current validated state | Office-LAN access only | Safe current default |
+| VPN-only staff access | Remote use without public CRM login; follows remote-administration security direction | Requires VPN implementation and user onboarding | Recommended near-term remote-access option |
+| Public HTTPS through `npm01` | Normal browser access from anywhere | Exposes authentication and application attack surface; requires app hardening, DNS, TLS, edge rules, monitoring, and incident response | Do not implement until all gates pass |
+| Cloud tunnel service | Can work behind CGNAT and avoid router forwarding | External dependency and architecture change; does not match the currently approved direct reverse-proxy model | Not approved |
+
+## Application readiness review — 2026-07-19
+
+The pinned CRM revision already sets Express `trust proxy` in production, supports `SESSION_COOKIE_SECURE`, uses `HttpOnly` and `SameSite=Lax` session cookies, and applies CSRF protection. These are compatible with HTTPS termination at one trusted reverse proxy.
+
+The same revision uses `express-session` without an explicit production session store, so it falls back to `MemoryStore`. The official Express documentation states that this default is not designed for production, leaks memory under most conditions, and does not scale past one process. The application also has no declared login rate-limiter or HTTP security-header middleware, and no MFA capability is documented. See the [official Express session documentation](https://expressjs.com/en/resources/middleware/session/).
+
+Therefore unrestricted public login is blocked pending application hardening.
+
+## Required hardening before public HTTPS
+
+1. Replace `MemoryStore` with an approved persistent session store.
+2. Add login and authentication rate limiting with a documented lockout/abuse policy.
+3. Add and validate security headers, including HSTS only after HTTPS is stable.
+4. Remove the internal override or set `SESSION_COOKIE_SECURE=true` before proxy validation.
+5. Confirm proxy trust remains limited to the single `npm01` hop; do not broadly trust arbitrary forwarding headers.
+6. Review password policy, admin-account protection, audit logging, session lifetime, logout invalidation, and incident response.
+7. Run dependency, application, and authentication-path tests against the exact deployment revision.
+
+### Session-store alternatives
+
+| Store | Benefits | Risks / impact | Recommendation |
+|---|---|---|---|
+| Existing in-memory store | No change | Officially unsuitable for production; sessions disappear on restart; memory/scaling risk | Reject for public use |
+| MongoDB-backed store on `db01` | Uses existing protected database host; persistent sessions; no new VM | Adds dependency and a session collection; requires scoped user/retention/index design and backup exclusion/retention decision | Recommended for current hardware, subject to owner approval |
+| Redis session store | Common dedicated session design | Adds another service, memory use, security policy, and recovery scope on constrained hardware | Defer |
+
+Selecting MongoDB-backed sessions changes application dependencies and database usage. It requires documentation, code review, tests, owner approval, canary deployment, and rollback before publication.
+
+## Nginx Proxy Manager prerequisites
+
+Before deploying NPM or a proxy host, record and approve:
+
+| Required fact | Status |
+|---|---|
+| Final CRM FQDN | Pending owner input |
+| DNS provider and account control | Pending owner input |
+| Public IPv4 or CGNAT status | Pending router/ISP validation |
+| Router ownership and port-forward capability | Pending owner validation |
+| NPM admin identity/secret storage | Pending; must use Vault/approved password manager |
+| Certificate method | Pending; Let's Encrypt HTTP-01 for public 80/443 or approved DNS-01 workflow |
+| Backend | Planned `http://192.168.10.101:3000` |
+| NPM management access | LAN/VPN only; TCP 81 must not be publicly forwarded |
+| Monitoring and renewal alerts | Pending design |
+
+## Staged validation workflow
+
+### Stage 1 — Internal proxy only
+
+1. Deploy Nginx Proxy Manager on `npm01` from documented, pinned configuration after owner approval.
+2. Restrict its administration interface to LAN/VPN.
+3. Create an internal-only CRM proxy host to `crm01:3000`; do not change the router or public DNS.
+4. Enable `SESSION_COOKIE_SECURE=true` only when testing through trusted HTTPS; retain an approved rollback to the internal HTTP canary.
+5. Validate health, login, CSRF-protected forms, permissions, forwarding headers, logs, memory, and session persistence across an application restart.
+
+### Stage 2 — Public edge readiness
+
+1. Confirm public IP/CGNAT status, FQDN ownership, DNS control, router rules, and certificate method.
+2. Forward only TCP 80 and 443 to `npm01`; never forward TCP 81.
+3. Obtain and validate the TLS certificate, forced HTTPS, renewal, and security headers.
+4. Test externally without exposing administrative interfaces or backend ports.
+5. Record rollback: remove public DNS/forwarding, disable the proxy host, and return to internal-only access.
+
+### Stage 3 — Owner release
+
+Release public access only after the owner accepts security, functional, backup, capacity, external scan, logging, and rollback evidence. Publication approval is separate from planning and application-hardening approval.
+
+## Stop conditions
+
+Stop publication work for any authentication bypass, broken CSRF/session behaviour, certificate failure, unexpected public port, proxy-loop/forwarding error, memory or swap pressure, missing backup, inability to roll back, or unresolved CGNAT/DNS ownership issue.
+
+## Owner decisions required
+
+1. Choose internal-only, VPN-only, or eventual public HTTPS access.
+2. If public HTTPS is required, approve MongoDB-backed session design for detailed implementation planning or choose another session store.
+3. Provide the intended CRM FQDN and DNS provider.
+4. Authorize read-only router/public-IP/CGNAT fact collection before any edge change.
+
+No DNS, NPM service, proxy host, TLS certificate, router forwarding, or CRM configuration was changed by this plan.

@@ -18,5 +18,6 @@
 - Ansible Vault for encrypted repository secrets.
 - Automatic-update policy and maintenance window.
 - TLS certificate management, backup verification, and DR testing.
+- CRM public login hardening: persistent production session store, authentication rate limiting, security headers, proxy/cookie validation, and incident-response evidence. The current default `express-session` `MemoryStore` blocks unrestricted public exposure.
 
 Never record passwords, private keys, API tokens, or application `.env` files in Git.

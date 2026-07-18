@@ -2,6 +2,20 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — CRM HTTPS publication architecture review
+
+### Reviewed
+
+- Compared internal-only, VPN-only, public NPM/HTTPS, and external tunnel access paths against the approved network architecture.
+- Confirmed the pinned CRM revision sets one-hop proxy trust in production, supports secure cookies, and applies CSRF protection.
+- Identified the default in-memory session store plus missing documented login rate limiting, security-header middleware, and MFA as public-exposure risks.
+
+### Prepared
+
+- Added application-hardening gates, session-store alternatives, NPM/DNS/TLS/router prerequisites, staged internal/public validation, rollback, and owner decisions.
+- Recommended VPN-only for near-term remote access and MongoDB-backed sessions if the owner later approves public HTTPS implementation planning.
+- No DNS, NPM service, proxy host, certificate, router, CRM runtime, database, VM resource, or hardware change was performed.
+
 ## 2026-07-19 — CRM application recovery runbook
 
 ### Prepared
