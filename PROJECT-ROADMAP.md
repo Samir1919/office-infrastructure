@@ -141,14 +141,15 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 ## Next approved implementation step
 
 1. Continue CRM preparation on the current 16 GB host and retain the existing 2 vCPU / 2 GB / 32 GB allocations.
-2. Prepare and validate the CRM production-cutover, backup, and rollback runbook using the already validated canary evidence; do not execute cutover or public publication without separate owner approval.
-3. Continue read-only host, VM, CRM, and MongoDB capacity monitoring and stop expansion if the documented pressure conditions occur.
-4. Do not research, recommend, purchase, or implement BIOS, RAM, or other hardware updates until the owner explicitly reopens the subject.
+2. Review the prepared CRM production-cutover, backup, and rollback runbook; approve or reject the temporary encrypted off-host backup option on the owner's macOS control node.
+3. After separate owner approval, perform a non-production restore rehearsal into `crm_restore_test`; do not alter `crm_prod`, execute production cutover, or publish the CRM during rehearsal.
+4. Before rehearsal, document a repeatable permission-taxonomy mapping procedure and continue read-only capacity monitoring.
+5. Do not research, recommend, purchase, or implement BIOS, RAM, or other hardware updates until the owner explicitly reopens the subject.
 
 ## Supporting references
 
 - [VM inventory](docs/VM-Inventory.md)
 - [Network design](docs/Network-Design.md)
-- [Capacity review](docs/Capacity-Review.md), [Proxmox read-only API](docs/Proxmox-Read-Only-API.md), [CRM pilot migration plan](docs/CRM-Migration-Plan.md), [database access policy](docs/Database-Access-Policy.md), [Storage](docs/Storage-Design.md), [security](docs/Security-Baseline.md), and [backup](docs/Backup-Strategy.md)
+- [Capacity review](docs/Capacity-Review.md), [Proxmox read-only API](docs/Proxmox-Read-Only-API.md), [CRM pilot migration plan](docs/CRM-Migration-Plan.md), [CRM cutover runbook](docs/CRM-Cutover-Runbook.md), [database access policy](docs/Database-Access-Policy.md), [Storage](docs/Storage-Design.md), [security](docs/Security-Baseline.md), and [backup](docs/Backup-Strategy.md)
 - [Monitoring](docs/Monitoring-Strategy.md), [deployment runbook](docs/Deployment-Runbook.md), and [disaster recovery](docs/Disaster-Recovery.md)
 - [Architecture decisions](docs/ADR/) and [change history](docs/CHANGELOG.md)
