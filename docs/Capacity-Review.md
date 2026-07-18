@@ -18,6 +18,7 @@
 | Installed memory | 2 × 8 GB DDR4-3200, non-ECC unbuffered, 1.2 V, single-rank |
 | Installed DIMM part number | `HKED4081CAA2F2HB1` in both channels |
 | Board maximum | 64 GB across 2 slots |
+| Current BIOS | AMI `A.20`, release date reported by SMBIOS as 2024-04-09; MSI package family `7C52vA2` |
 
 The 14 GB total is the configured baseline allocation, not a guarantee of actual RAM use. Even so, it leaves too little headroom for the Proxmox host, filesystem cache, temporary peaks, or application deployment.
 
@@ -112,12 +113,31 @@ MSI's official specification lists two DDR4 slots, 64 GB maximum capacity, dual-
 
 This is a recommendation, not an approved resource change. The owner must choose an option before any VM resize or Phase 5 application rollout.
 
+## BIOS and memory qualification — 2026-07-19
+
+The host reports AMI BIOS `A.20` with SMBIOS release date `2024-04-09`. MSI's support page maps the `A.20` generation to stable package `7C52vA2`, which includes AGESA ComboAm4v2PI `1.2.0.C`. MSI lists Ryzen 7 5700G support from the board's initial `A0` BIOS, and its board specification requires only ComboPI `1.0.0.3` or newer for 64 GB support. The current firmware therefore satisfies the published CPU and capacity prerequisites; a BIOS update is not required solely to recognize 64 GB.
+
+MSI lists stable `7C52vA5` dated `2025-09-30` as the newest non-beta firmware, with AGESA ComboAm4v2PI `1.2.0.F`. Updating may provide newer firmware fixes, but it is a separate maintenance change with outage, settings-reset, and flash-failure risk. If approved, perform it with the current known-good memory, stable power, recorded BIOS settings, and a separately validated rollback/recovery plan before replacing RAM. Do not use a beta firmware for this infrastructure baseline.
+
+MSI's Ryzen 5000G memory QVL was last updated in 2023. It confirms that the board can operate two tested 32 GB DIMMs, including Kingston `KVR26N19D8/32`, TEAMGROUP `TED432G2666C19BK`, and ADATA `AD4U2666732G19-B`, but those listed 32 GB examples are DDR4-2666 rather than DDR4-3200. The Kingston model is also discontinued, so availability and warranty quality may be poor.
+
+Kingston's current `KVR32N22D8/32` is a technically suitable candidate: 32 GB, DDR4-3200, CL22, 2Rx8, non-ECC, unbuffered, 1.2 V, and JEDEC-standard operation. Two identical modules would match the board's electrical specification and AMD's supported memory speed. This is an engineering compatibility inference, not an exact MSI-QVL confirmation; Kingston's board configurator confirms the board's 64 GB/two-socket limit but did not directly qualify this part in the retrieved result. Purchase it only after the seller or Kingston confirms exact-board support and provides a return option.
+
+| Acquisition path | Exact part | Benefits | Risks / limitations |
+|---|---|---|---|
+| QVL-first | 2 × Kingston `KVR26N19D8/32` | MSI QVL explicitly shows two-DIMM support | DDR4-2666; discontinued; sourcing and warranty risk |
+| Current-spec candidate | 2 × Kingston `KVR32N22D8/32` | JEDEC DDR4-3200, 1.2 V, current 32 GB modules; matches board/CPU published specifications | Not explicitly present in MSI's old QVL; vendor confirmation and return policy required |
+
+Avoid XMP-only 1.35 V gaming kits as the infrastructure baseline. Whichever option is selected, use two identical modules from the same part/revision and do not reuse the existing 8 GB DIMMs.
+
+Qualification sources: [MSI BIOS, CPU and memory compatibility](https://www.msi.com/Motherboard/B450M-A-PRO-MAX-II/support), [MSI board specification](https://www.msi.com/Motherboard/B450M-A-PRO-MAX-II/Specification), [Kingston board configurator](https://www.kingston.com/en/memory/search/model/109179/msi-b450m-a-pro-max-ii-motherboard), [Kingston `KVR32N22D8/32` specification](https://www.kingston.com/datasheets/KVR32N22D8_32.pdf), and [AMD Ryzen 7 5700G specification](https://www.amd.com/en/support/downloads/drivers.html/processors/ryzen/ryzen-5000-series/amd-ryzen-7-5700g.html).
+
 ## Required validation before a decision
 
-1. Record the current motherboard BIOS version.
-2. Select an exact matched 2 × 32 GB DDR4-3200 non-ECC unbuffered 1.2 V kit from MSI's compatibility information or the memory vendor's explicit `B450M-A PRO MAX II` support list.
-3. Approve the 64 GB target, exact kit, purchase, and maintenance window.
-4. After installation, run a memory test and repeat Proxmox host/VM health validation.
+1. Owner chooses whether to retain current BIOS `A.20` or approve a separate update to stable `7C52vA5`; no firmware update is implied by the RAM recommendation.
+2. Obtain written seller/manufacturer confirmation for two `KVR32N22D8/32` modules on MSI `B450M-A PRO MAX II`, or deliberately choose an available QVL-listed DDR4-2666 alternative.
+3. Approve the 64 GB target, exact modules, purchase, return policy, and maintenance window.
+4. After installation, run an offline memory test and repeat Proxmox host/VM health validation.
 5. Update the VM resource plan only after successful hardware validation and separate owner approval, then snapshot affected VMs before application deployment.
 
 ## Decision record
@@ -125,6 +145,8 @@ This is a recommendation, not an approved resource change. The owner must choose
 | Decision item | Owner decision |
 |---|---|
 | Selected host memory target | Pending owner approval; 64 GB (2 × 32 GB) recommended |
-| Hardware compatibility confirmed | Board-level 64 GB support confirmed; current BIOS and exact kit compatibility pending |
+| Current BIOS | `A.20` recorded; sufficient for published CPU/64 GB prerequisites |
+| BIOS update | Not approved; stable `7C52vA5` is an optional separate maintenance decision |
+| Hardware compatibility confirmed | Board-level 64 GB support confirmed; QVL-listed DDR4-2666 and non-QVL current DDR4-3200 paths documented; exact purchase remains pending |
 | Maintenance window | Pending |
 | VM resize plan approved | Not approved; existing allocation retained for limited CRM pilot |

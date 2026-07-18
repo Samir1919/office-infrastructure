@@ -2,6 +2,16 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — Proxmox BIOS and memory qualification
+
+### Validated
+
+- Recorded the current `pve01` AMI BIOS as `A.20` and confirmed that it satisfies MSI's published Ryzen 7 5700G and 64 GB prerequisites.
+- Identified stable MSI firmware `7C52vA5` as an optional separate maintenance decision; no BIOS update was approved or performed.
+- Confirmed MSI's Ryzen 5000G QVL includes two-DIMM support for several 32 GB DDR4-2666 modules, while its old list does not provide an exact 32 GB DDR4-3200 match.
+- Documented Kingston `KVR32N22D8/32` as a current JEDEC DDR4-3200 1.2 V candidate whose exact-board support still requires seller/manufacturer confirmation and a return option before purchase approval.
+- No BIOS, hardware, VM resource, or production configuration change was performed.
+
 ## 2026-07-19 — Proxmox memory hardware inventory
 
 ### Validated
