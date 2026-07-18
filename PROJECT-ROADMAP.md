@@ -72,8 +72,8 @@ The approved automation layer improves implementation quality without changing t
 | 4.1 | Common baseline role and validation | Complete |
 | 4.2 | Docker Engine and Compose on Docker hosts | Complete |
 | 5 | CRM, website, ERP, Nginx Proxy Manager | Pending |
-| 5.1 | VPN-based Remote Administration, Wake-on-LAN strategy and secure remote access baseline | Pending |
 | 6 | MongoDB, PostgreSQL, database security and backups | Pending |
+| 5.1 | VPN-based Remote Administration, Wake-on-LAN strategy and secure remote access baseline | Pending |
 | 7 | FreePBX | Pending |
 | 8 | Backup server / TrueNAS and restore test | Pending |
 | 9 | Monitoring | Pending |

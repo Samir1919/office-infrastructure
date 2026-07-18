@@ -14,7 +14,7 @@ This is the durable history of completed and validated work. Planned work belong
 
 ### Updated
 
-- Rescheduled VPN-based remote administration and Wake-on-LAN implementation to Phase 5.1, after Phase 5 Nginx Proxy Manager deployment.
+- Rescheduled VPN-based remote administration and Wake-on-LAN implementation to Phase 5.1, after Phase 5 Nginx Proxy Manager and Phase 6 database deployment.
 
 
 ## 2026-07-17 — Repository and automation foundation
