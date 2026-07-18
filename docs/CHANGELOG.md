@@ -20,7 +20,9 @@ This is the durable history of completed and validated work. Planned work belong
 ### Validated
 
 - MongoDB Community `8.3.4` installed on `db01` from the official repository.
-- `mongod` is enabled and active, with authentication enabled and `127.0.0.1:27017` as its only listener.
+- `mongod` is enabled and active with authentication enabled; MongoDB listens only on localhost and `db01`'s internal LAN address.
+- Vault-managed administrative and `crm_app` credentials created; `crm_app` has `readWrite` access to `crm_prod` only.
+- `db01` UFW enabled with default-deny incoming traffic, SSH allowed from the office server LAN, and MongoDB TCP `27017` allowed only from `crm01`.
 
 ## 2026-07-18 — Remote administration and secure external access policy
 

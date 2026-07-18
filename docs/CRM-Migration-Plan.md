@@ -101,4 +101,4 @@ Stop the pilot if the host enters swap pressure, VM memory is persistently exhau
 
 ## Next implementation decision
 
-MongoDB 8.3.4 is installed and validated on `db01` with authorization enabled and a localhost-only listener. The next database step is a documented and owner-approved Vault-managed administrative user plus least-privilege `crm_prod` application user, followed by authenticated access from `crm01` only. No data migration or public publication is included.
+MongoDB 8.3.4 is installed and validated on `db01`. The Vault-managed `crm_app` user has `readWrite` access to `crm_prod` only, and authenticated TCP `27017` access is restricted by UFW to `crm01` only. No data migration or public publication is included. The next step is to collect the CRM package-manager, startup-command, and document-upload storage facts before the Node.js canary.

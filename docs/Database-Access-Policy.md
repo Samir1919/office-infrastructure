@@ -51,7 +51,7 @@ The approved enforcement baseline is:
 - MongoDB TCP `27017`: allow only from explicitly approved application VM IPs.
 - Outgoing traffic: allow unless a later approved policy changes it.
 
-The current firewall is inactive and MongoDB is localhost-only. Enabling the firewall and adding the CRM rule is the next implementation step; it is not implied by this document alone.
+The `db01` firewall baseline is active. SSH TCP `22` is allowed from `192.168.10.0/24`, and MongoDB TCP `27017` is allowed only from `crm01` (`192.168.10.101`). MongoDB listens on localhost and `db01`'s server-LAN address; no public database exposure exists.
 
 ## Credential handling
 
