@@ -70,7 +70,7 @@
     allow_downgrade: false
   when: not ansible_check_mode
 
-- name: Configure MongoDB local-only authenticated baseline
+- name: Configure MongoDB authenticated internal baseline
   ansible.builtin.copy:
     dest: /etc/mongod.conf
     owner: root
@@ -87,7 +87,7 @@
 
       net:
         port: {{ mongodb_port }}
-        bindIp: {{ mongodb_bind_ip }}
+        bindIp: {{ mongodb_internal_bind_ips | join(',') }}
 
       processManagement:
         timeZoneInfo: /usr/share/zoneinfo
@@ -102,6 +102,129 @@
     name: mongod
     state: started
     enabled: true
+  when: not ansible_check_mode
+
+- name: Check whether the MongoDB administrative user is available
+  ansible.builtin.command:
+    argv:
+      - mongosh
+      - --quiet
+      - --host
+      - 127.0.0.1
+      - --authenticationDatabase
+      - admin
+      - --username
+      - "{{ mongodb_admin_username }}"
+      - --password
+      - "{{ vault_mongodb_admin_password }}"
+      - --eval
+      - 'db.runCommand({connectionStatus: 1}).ok'
+  register: mongodb_admin_connection
+  changed_when: false
+  failed_when: false
+  no_log: true
+  when: not ansible_check_mode
+
+- name: Create MongoDB administrative user through the localhost exception
+  ansible.builtin.command:
+    argv:
+      - mongosh
+      - --quiet
+      - --host
+      - 127.0.0.1
+      - --eval
+      - >-
+        db.getSiblingDB('admin').createUser({user: {{ mongodb_admin_username | to_json }}, pwd: {{ vault_mongodb_admin_password | to_json }}, roles: [{role: 'root', db: 'admin'}]})
+  no_log: true
+  when:
+    - not ansible_check_mode
+    - mongodb_admin_connection.rc != 0
+
+- name: Create least-privilege CRM application user
+  ansible.builtin.command:
+    argv:
+      - mongosh
+      - --quiet
+      - --host
+      - 127.0.0.1
+      - --authenticationDatabase
+      - admin
+      - --username
+      - "{{ mongodb_admin_username }}"
+      - --password
+      - "{{ vault_mongodb_admin_password }}"
+      - --eval
+      - >-
+        const app = db.getSiblingDB({{ mongodb_crm_database | to_json }}); if (app.getUser({{ mongodb_crm_username | to_json }}) === null) { app.createUser({user: {{ mongodb_crm_username | to_json }}, pwd: {{ vault_mongodb_crm_password | to_json }}, roles: [{role: 'readWrite', db: {{ mongodb_crm_database | to_json }}}]}); }
+  no_log: true
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Set default UFW incoming policy to deny
+  community.general.ufw:
+    direction: incoming
+    default: deny
+  when: not ansible_check_mode
+
+- name: Set default UFW outgoing policy to allow
+  community.general.ufw:
+    direction: outgoing
+    default: allow
+  when: not ansible_check_mode
+
+- name: Allow SSH from the office server LAN
+  community.general.ufw:
+    rule: allow
+    direction: in
+    proto: tcp
+    from_ip: "{{ mongodb_office_lan }}"
+    to_port: '22'
+  when: not ansible_check_mode
+
+- name: Allow MongoDB only from crm01
+  community.general.ufw:
+    rule: allow
+    direction: in
+    proto: tcp
+    from_ip: "{{ mongodb_crm_host_ip }}"
+    to_port: "{{ mongodb_port }}"
+  when: not ansible_check_mode
+
+- name: Enable UFW firewall
+  community.general.ufw:
+    state: enabled
+  when: not ansible_check_mode
+
+- name: Apply MongoDB configuration before remote validation
+  ansible.builtin.meta: flush_handlers
+  when: not ansible_check_mode
+
+- name: Verify crm01 can reach the MongoDB listener
+  ansible.builtin.wait_for:
+    host: "{{ ansible_host }}"
+    port: "{{ mongodb_port }}"
+    timeout: 10
+  delegate_to: crm01
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Verify CRM application credentials
+  ansible.builtin.command:
+    argv:
+      - mongosh
+      - --quiet
+      - --host
+      - 127.0.0.1
+      - --authenticationDatabase
+      - crm_prod
+      - --username
+      - "{{ mongodb_crm_username }}"
+      - --password
+      - "{{ vault_mongodb_crm_password }}"
+      - --eval
+      - 'db.runCommand({connectionStatus: 1}).ok'
+  changed_when: false
+  no_log: true
   when: not ansible_check_mode
 
 - name: Verify installed MongoDB version

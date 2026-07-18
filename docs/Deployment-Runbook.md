@@ -59,7 +59,7 @@ Validate Docker Engine and the Compose plugin before applying to the remaining a
 
 ## MongoDB CRM pilot
 
-MongoDB Community `8.3.4` is automated only for `db01`. The installation sets an authenticated, localhost-only baseline: it is not reachable from the LAN or Internet until a separate approved CRM connection and application-user step.
+MongoDB Community `8.3.4` is automated only for `db01`. It creates a Vault-managed administrative user and a least-privilege `crm_app` user for `crm_prod`; UFW permits TCP `27017` only from `crm01` and allows SSH only from `192.168.10.0/24`. No database port is public.
 
 Run from `ansible/`:
 

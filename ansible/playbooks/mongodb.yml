@@ -6,6 +6,7 @@
   vars_files:
     - ../group_vars/all/main.yml
     - ../group_vars/all/vault.yml
+    - ../group_vars/all/mongodb-secrets.yml
 
   roles:
     - mongodb

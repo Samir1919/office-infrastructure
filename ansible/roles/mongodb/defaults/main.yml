@@ -3,5 +3,12 @@ mongodb_version: '8.3.4'
 mongodb_major_version: '8.3'
 mongodb_signing_key_version: '8.0'
 mongodb_apt_arch: "{{ {'x86_64': 'amd64', 'aarch64': 'arm64'}.get(ansible_facts['architecture'], ansible_facts['architecture']) }}"
-mongodb_bind_ip: '127.0.0.1'
 mongodb_port: 27017
+mongodb_internal_bind_ips:
+  - '127.0.0.1'
+  - '192.168.10.102'
+mongodb_office_lan: '192.168.10.0/24'
+mongodb_crm_host_ip: '192.168.10.101'
+mongodb_admin_username: 'mongodb_admin'
+mongodb_crm_username: 'crm_app'
+mongodb_crm_database: 'crm_prod'
