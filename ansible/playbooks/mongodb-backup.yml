@@ -1,0 +1,147 @@
+---
+- name: Create a verified off-host backup of the CRM MongoDB database
+  hosts: database
+  become: true
+
+  vars_files:
+    - ../group_vars/all/main.yml
+    - ../group_vars/all/vault.yml
+    - ../group_vars/all/mongodb-secrets.yml
+
+  vars:
+    mongodb_backup_database: crm_prod
+    mongodb_backup_admin_username: mongodb_admin
+    mongodb_backup_filename: >-
+      db01_crm_prod_{{ ansible_facts['date_time']['iso8601_basic_short'] }}.archive.gz
+
+  pre_tasks:
+    - name: Verify backup scope and required controller destination
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'db01'
+          - mongodb_backup_controller_root is defined
+          - mongodb_backup_controller_root is string
+          - mongodb_backup_controller_root is match('^/[^/].+')
+          - mongodb_backup_controller_root != '/'
+        fail_msg: >-
+          Run only for db01 and provide an explicit absolute
+          mongodb_backup_controller_root outside the Git repository.
+
+    - name: Create owner-only backup directory on the control node
+      ansible.builtin.file:
+        path: "{{ mongodb_backup_controller_root }}"
+        state: directory
+        mode: '0700'
+      delegate_to: localhost
+      become: false
+
+    - name: Verify MongoDB dump tool is installed
+      ansible.builtin.command:
+        argv:
+          - mongodump
+          - --version
+      register: mongodb_backup_tool_version
+      changed_when: false
+
+  tasks:
+    - name: Create and retrieve CRM database archive
+      block:
+        - name: Create protected temporary backup workspace
+          ansible.builtin.tempfile:
+            state: directory
+            path: /var/tmp
+            prefix: crm-prod-backup-
+          register: mongodb_backup_workspace
+
+        - name: Create protected mongodump credential file
+          ansible.builtin.copy:
+            dest: "{{ mongodb_backup_workspace.path }}/mongodump.yml"
+            owner: root
+            group: root
+            mode: '0600'
+            content: |
+              password: {{ vault_mongodb_admin_password | to_json }}
+              uri: {{ ('mongodb://' ~ mongodb_backup_admin_username ~ '@127.0.0.1:27017/?authSource=admin') | to_json }}
+          no_log: true
+
+        - name: Create compressed CRM database archive
+          ansible.builtin.command:
+            argv:
+              - mongodump
+              - --config
+              - "{{ mongodb_backup_workspace.path }}/mongodump.yml"
+              - --db
+              - "{{ mongodb_backup_database }}"
+              - --archive={{ mongodb_backup_workspace.path }}/{{ mongodb_backup_filename }}
+              - --gzip
+          register: mongodb_backup_dump
+          changed_when: mongodb_backup_dump.rc == 0
+
+        - name: Protect the remote archive
+          ansible.builtin.file:
+            path: "{{ mongodb_backup_workspace.path }}/{{ mongodb_backup_filename }}"
+            owner: root
+            group: root
+            mode: '0600'
+
+        - name: Inspect the remote archive
+          ansible.builtin.stat:
+            path: "{{ mongodb_backup_workspace.path }}/{{ mongodb_backup_filename }}"
+            checksum_algorithm: sha256
+          register: mongodb_backup_remote_archive
+
+        - name: Require a non-empty remote archive
+          ansible.builtin.assert:
+            that:
+              - mongodb_backup_remote_archive.stat.exists
+              - mongodb_backup_remote_archive.stat.size | int > 0
+              - mongodb_backup_remote_archive.stat.checksum | length == 64
+            fail_msg: MongoDB backup archive is missing, empty, or has no SHA-256 checksum.
+
+        - name: Fetch archive to the encrypted control node
+          ansible.builtin.fetch:
+            src: "{{ mongodb_backup_workspace.path }}/{{ mongodb_backup_filename }}"
+            dest: "{{ mongodb_backup_controller_root }}/{{ mongodb_backup_filename }}"
+            flat: true
+            validate_checksum: true
+
+        - name: Set owner-only permissions on the off-host archive
+          ansible.builtin.file:
+            path: "{{ mongodb_backup_controller_root }}/{{ mongodb_backup_filename }}"
+            mode: '0600'
+          delegate_to: localhost
+          become: false
+
+        - name: Inspect the off-host archive
+          ansible.builtin.stat:
+            path: "{{ mongodb_backup_controller_root }}/{{ mongodb_backup_filename }}"
+            checksum_algorithm: sha256
+          delegate_to: localhost
+          become: false
+          register: mongodb_backup_local_archive
+
+        - name: Verify off-host size and SHA-256
+          ansible.builtin.assert:
+            that:
+              - mongodb_backup_local_archive.stat.exists
+              - mongodb_backup_local_archive.stat.size == mongodb_backup_remote_archive.stat.size
+              - mongodb_backup_local_archive.stat.checksum == mongodb_backup_remote_archive.stat.checksum
+            fail_msg: Off-host MongoDB archive failed size or SHA-256 validation.
+
+        - name: Report sanitized backup evidence
+          ansible.builtin.debug:
+            msg:
+              database: "{{ mongodb_backup_database }}"
+              archive: "{{ mongodb_backup_filename }}"
+              bytes: "{{ mongodb_backup_local_archive.stat.size }}"
+              sha256: "{{ mongodb_backup_local_archive.stat.checksum }}"
+              mongodump: "{{ mongodb_backup_tool_version.stdout_lines[0] }}"
+
+      always:
+        - name: Remove protected temporary backup workspace
+          ansible.builtin.file:
+            path: "{{ mongodb_backup_workspace.path }}"
+            state: absent
+          when:
+            - mongodb_backup_workspace is defined
+            - mongodb_backup_workspace.path is defined

@@ -20,3 +20,44 @@ The backup phase is complete only after a successful documented restore test.
 The owner has deferred new hardware work, so the future TrueNAS target is unavailable for the current CRM preparation. The preferred interim option is a manually controlled, encrypted off-host copy on the owner's macOS control node, provided disk encryption, access control, free space, checksum verification, and a restore rehearsal are validated first. This is not a permanent backup service and requires owner approval before use. A database archive kept only on `db01` or Proxmox local storage is prohibited as the sole backup.
 
 The detailed approval, rehearsal, cutover, retention, and rollback workflow is in the [CRM Production Cutover Runbook](CRM-Cutover-Runbook.md).
+
+## CRM current-database backup
+
+On 2026-07-19 the owner approved proceeding with backup protection for the current `crm_prod` dataset on existing hardware. The approved interim destination is the FileVault-enabled macOS control node; it is an off-host manual protection layer, not the final scheduled backup architecture.
+
+The Ansible playbook `ansible/playbooks/mongodb-backup.yml`:
+
+- accepts an explicit absolute destination outside Git;
+- creates a compressed MongoDB archive using a root-only temporary credential file rather than a password-bearing command line;
+- fetches the archive to an owner-only directory on the encrypted control node;
+- validates non-zero size and matching SHA-256 on `db01` and the control node; and
+- removes the remote temporary archive and credential workspace after the transfer attempt.
+
+Run from `ansible/` with the Keychain-backed Vault password:
+
+```bash
+ANSIBLE_VAULT_PASSWORD_FILE=../scripts/ansible-vault-keychain.sh \
+ansible-playbook playbooks/mongodb-backup.yml \
+  --limit db01 \
+  -e mongodb_backup_controller_root=/Users/samir/Backups/office-infrastructure/mongodb
+```
+
+The destination directory must remain mode `0700`, each archive mode `0600`, and backup artifacts must never be committed. A successful archive and checksum transfer proves backup creation, but not recoverability; a restore test remains required before the backup phase can be considered complete.
+
+MongoDB recommends the `--config` file for sensitive `mongodump` values because a command-line password may be visible to system-status tools. The playbook follows that guidance with a temporary root-only file. See the [official `mongodump` documentation](https://www.mongodb.com/docs/database-tools/mongodump/).
+
+### First verified archive — 2026-07-19
+
+| Evidence | Result |
+|---|---|
+| Database | `crm_prod` |
+| Tool | MongoDB Database Tools `mongodump 100.17.0` |
+| Archive | `db01_crm_prod_20260719T023102.archive.gz` |
+| Destination | `/Users/samir/Backups/office-infrastructure/mongodb/` on the FileVault-enabled control node |
+| Size | 13,322 bytes |
+| SHA-256 | `6b8d943368e068046624a45125a924b1ce8f258ef83c68d00fd73bcf99d152a0` |
+| Permissions | Directory `0700`; archive `0600`, owned by `samir` |
+| Transfer validation | Remote and off-host size and SHA-256 matched |
+| Remote cleanup | Temporary credential and archive workspace removed; no matching workspace remained in `/var/tmp` |
+
+The archive was created without modifying `crm_prod`. Its existence and checksum are validated; restore recoverability is not yet validated.

@@ -143,9 +143,9 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 
 1. Continue CRM preparation on the current 16 GB host and retain the existing 2 vCPU / 2 GB / 32 GB allocations.
 2. Treat the validated `crm_prod` dataset as the current latest migrated copy; do not repeat the Windows migration or create `crm_restore_test` unless the owner reports new source data.
-3. Prepare protection for the current `crm_prod` data as a backup-only task. Any use of the encrypted macOS control node as an interim off-host destination still requires separate owner approval.
-4. Continue read-only host, VM, CRM, and MongoDB monitoring; public publication remains separately gated.
-5. Do not research, recommend, purchase, or implement BIOS, RAM, or other hardware updates until the owner explicitly reopens the subject.
+3. The first off-host `crm_prod` archive is complete on the FileVault-enabled macOS control node: 13,322 bytes, mode `0600`, with matching remote/local SHA-256 `6b8d943368e068046624a45125a924b1ce8f258ef83c68d00fd73bcf99d152a0`; the `db01` temporary workspace was removed.
+4. Prepare a separate restore-test proposal for this archive; do not restore into any database or delete any backup without owner approval.
+5. Continue read-only host, VM, CRM, and MongoDB monitoring; public publication remains separately gated, and hardware work remains deferred until the owner explicitly reopens it.
 
 ## Supporting references
 

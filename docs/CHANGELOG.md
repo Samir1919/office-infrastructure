@@ -2,6 +2,26 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — CRM off-host backup automation prepared
+
+### Approved
+
+- Proceed with backup protection for the current `crm_prod` dataset using the FileVault-enabled owner macOS control node as the interim off-host destination.
+
+### Prepared
+
+- Added a Vault-backed Ansible playbook that creates a compressed archive without putting the MongoDB password on the command line.
+- Enforced an explicit destination outside Git, owner-only directory/archive permissions, remote/local size and SHA-256 validation, and cleanup of the remote temporary credential and archive workspace.
+- Restore execution and archive deletion remain separately approval-gated.
+
+### Implemented and validated
+
+- Created `db01_crm_prod_20260719T023102.archive.gz` from `crm_prod` with MongoDB Database Tools `100.17.0` and transferred it to the FileVault-enabled control node.
+- Validated a 13,322-byte archive with matching remote/local SHA-256 `6b8d943368e068046624a45125a924b1ce8f258ef83c68d00fd73bcf99d152a0`.
+- Confirmed the local archive is owned by `samir` with mode `0600`, and the destination directory is owner-only.
+- Confirmed failure-path and successful-run cleanup removed the protected temporary credential/archive workspace from `db01`.
+- No database content, CRM service, VM allocation, public access, or hardware configuration was changed; restore recoverability remains untested.
+
 ## 2026-07-19 — Additional CRM remigration deferred
 
 ### Owner confirmation
