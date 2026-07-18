@@ -24,6 +24,8 @@ This is the durable history of completed and validated work. Planned work belong
 - `mongod` is enabled and active with authentication enabled; MongoDB listens only on localhost and `db01`'s internal LAN address.
 - Vault-managed administrative and `crm_app` credentials created; `crm_app` has `readWrite` access to `crm_prod` only.
 - `db01` UFW enabled with default-deny incoming traffic, SSH allowed from the office server LAN, and MongoDB TCP `27017` allowed only from `crm01`.
+- Internal CRM canary deployed on `crm01` from Git revision `997f4b8cf0bc3902da9beae5a26988e1280ad7df`; the Node.js `v24.18.0` container is healthy, returns `/healthz` status `200`, and connects to `crm_prod`.
+- No Windows CRM data migration, Nginx Proxy Manager publication, public DNS, TLS certificate, or router forwarding was performed.
 
 ## 2026-07-18 — Remote administration and secure external access policy
 

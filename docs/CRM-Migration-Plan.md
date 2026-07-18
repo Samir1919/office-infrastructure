@@ -97,10 +97,21 @@ If the CRM stores uploaded files on the Windows filesystem rather than GridFS, i
 
 The CRM Docker Compose service publishes TCP `3000` for the internal canary only. It receives no public DNS, Nginx Proxy Manager host, TLS certificate, or router port forwarding.
 
+### Canary validation record
+
+| Check | Validated result |
+|---|---|
+| Git revision | `997f4b8cf0bc3902da9beae5a26988e1280ad7df` |
+| Container Node.js runtime | `v24.18.0` |
+| Container health | `GET /healthz` returned `200` with `{"status":"ok"}` |
+| Database connection | CRM log confirmed MongoDB connection to `crm_prod` |
+| Container state | Docker health status `healthy` |
+| Source data import | Not started; Windows `realestate_crm` remains unchanged |
+
 ## Stop and rollback conditions
 
 Stop the pilot if the host enters swap pressure, VM memory is persistently exhausted, LVM-Thin capacity is unsafe, MongoDB health is degraded, or CRM response time is unacceptable. Keep the Windows CRM unchanged until the final cutover validation succeeds. Restoring the CRM configuration to the Windows database and retaining the source data are the immediate rollback path.
 
 ## Next implementation decision
 
-MongoDB 8.3.4 is installed and validated on `db01`. The Vault-managed `crm_app` user has `readWrite` access to `crm_prod` only, and authenticated TCP `27017` access is restricted by UFW to `crm01` only. No data migration or public publication is included. The next step is to collect the CRM package-manager, startup-command, and document-upload storage facts before the Node.js canary.
+MongoDB 8.3.4 is installed and validated on `db01`. The Vault-managed `crm_app` user has `readWrite` access to `crm_prod` only, and authenticated TCP `27017` access is restricted by UFW to `crm01` only. The Node.js 24 internal canary is validated on `crm01`. No Windows data migration or public publication is included. The next step is internal application testing, followed by a separately approved test data migration.

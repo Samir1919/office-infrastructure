@@ -129,11 +129,12 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 - The macOS Keychain provides the local Vault password; the encrypted Vault file is versioned only in the private repository.
 - Docker Engine and Compose are installed and validated on `crm01`, `web01`, `erp01`, and `npm01`; each has a `docker-base` snapshot.
 - MongoDB Community `8.3.4` is installed and validated on `db01`. Authorization is enabled; `crm_app` has `readWrite` access to `crm_prod` only; UFW allows TCP `27017` only from `crm01` and SSH only from the office server LAN. No data migration has been applied.
+- The internal CRM canary is deployed on `crm01` from Git revision `997f4b8cf0bc3902da9beae5a26988e1280ad7df`, runs Node.js `v24.18.0`, returns healthy from `/healthz`, and connects to `crm_prod`. It has no Nginx Proxy Manager host, public DNS, TLS certificate, or router forwarding. The Windows source data has not been imported.
 
 ## Next approved implementation step
 
-1. Collect the CRM package-manager, startup-command, and document-upload storage facts before preparing the Node.js Compose canary and test migration.
-2. Build and validate a non-public `crm01` Node.js Compose canary using the Vault-managed `crm_app` credential.
+1. Take the `crm-installed` Proxmox snapshot after the validated canary deployment.
+2. Run internal CRM login and representative read/write testing against the empty canary database.
 3. Run a test `realestate_crm` → `crm_prod` MongoDB migration and validate data counts and application behaviour.
 4. Complete production cutover only after a separate owner-approved capacity and cutover decision.
 
