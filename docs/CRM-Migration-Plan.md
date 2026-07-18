@@ -89,13 +89,15 @@ If the CRM stores uploaded files on the Windows filesystem rather than GridFS, i
 
 ## Application preparation on `crm01`
 
-1. Pull the owner-approved GitHub revision `997f4b8cf0bc3902da9beae5a26988e1280ad7df`, which contains the Node.js 24 LTS Docker runtime update.
+1. Pull the owner-approved GitHub revision `ae9539ca575df9ffdafe047c49b20fff2473b858`, which contains the Node.js 24 LTS Docker runtime update and configurable session-cookie security.
 2. Build the existing Docker Compose application image on `crm01`; the repository uses `npm` and production command `node app.js`.
 3. Create a non-committed `.env.production` file with the Vault-managed `crm_app` URI for `crm_prod` and a Vault-managed session secret.
 4. Run the CRM only on the internal network and test `/healthz`, MongoDB connection logs, login, data reads/writes, and application logs.
 5. Monitor `pve01`, `crm01`, and `db01` memory, swap, CPU, disk use, and MongoDB logs throughout the canary.
 
 The CRM Docker Compose service publishes TCP `3000` for the internal canary only. It receives no public DNS, Nginx Proxy Manager host, TLS certificate, or router port forwarding.
+
+Because this canary is accessed over internal HTTP, its generated environment file sets `SESSION_COOKIE_SECURE=false` so browsers can retain the authenticated session cookie. This is not a public-deployment setting: before Nginx Proxy Manager HTTPS publication, remove the override or set `SESSION_COOKIE_SECURE=true`.
 
 The initial admin identity follows the CRM repository configuration: `Admin User` / `admin@asalagroupbd.com`. Its password is a unique Vault-managed value stored locally in the owner’s macOS Keychain; the repository's exposed example password is never used on `crm01`.
 
@@ -105,12 +107,13 @@ Before Windows data migration only, the canary may reset its empty `crm_prod` da
 
 | Check | Validated result |
 |---|---|
-| Git revision | `997f4b8cf0bc3902da9beae5a26988e1280ad7df` |
+| Git revision | `ae9539ca575df9ffdafe047c49b20fff2473b858` |
 | Container Node.js runtime | `v24.18.0` |
 | Container health | `GET /healthz` returned `200` with `{"status":"ok"}` |
 | Database connection | CRM log confirmed MongoDB connection to `crm_prod` |
 | Container state | Docker health status `healthy` |
 | Initial admin | `Admin User` / `admin@asalagroupbd.com`, created with a Vault-managed password |
+| Internal login | Validated: CSRF-protected login redirected to the authenticated dashboard over internal HTTP |
 | Source data import | Not started; Windows `realestate_crm` remains unchanged |
 
 ## Stop and rollback conditions

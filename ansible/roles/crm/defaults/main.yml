@@ -1,6 +1,6 @@
 ---
 crm_repository: 'https://github.com/Samir1919/realestate-crm.git'
-crm_git_revision: '997f4b8cf0bc3902da9beae5a26988e1280ad7df'
+crm_git_revision: 'ae9539ca575df9ffdafe047c49b20fff2473b858'
 crm_deploy_path: '/opt/realestate-crm'
 crm_port: 3000
 crm_database_host: '192.168.10.102'

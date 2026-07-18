@@ -129,7 +129,7 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 - The macOS Keychain provides the local Vault password; the encrypted Vault file is versioned only in the private repository.
 - Docker Engine and Compose are installed and validated on `crm01`, `web01`, `erp01`, and `npm01`; each has a `docker-base` snapshot.
 - MongoDB Community `8.3.4` is installed and validated on `db01`. Authorization is enabled; `crm_app` has `readWrite` access to `crm_prod` only; UFW allows TCP `27017` only from `crm01` and SSH only from the office server LAN. No data migration has been applied.
-- The internal CRM canary is deployed on `crm01` from Git revision `997f4b8cf0bc3902da9beae5a26988e1280ad7df`, runs Node.js `v24.18.0`, returns healthy from `/healthz`, and connects to `crm_prod`. It has no Nginx Proxy Manager host, public DNS, TLS certificate, or router forwarding. The Windows source data has not been imported.
+- The internal CRM canary is deployed on `crm01` from Git revision `ae9539ca575df9ffdafe047c49b20fff2473b858`, runs Node.js `v24.18.0`, returns healthy from `/healthz`, connects to `crm_prod`, and has passed authenticated internal login validation. It has no Nginx Proxy Manager host, public DNS, TLS certificate, or router forwarding. The Windows source data has not been imported.
 - The empty CRM canary database was reset once before migration and bootstrapped with the Vault-managed `Admin User` account for `admin@asalagroupbd.com`. The known repository fallback password was not used.
 
 ## Next approved implementation step

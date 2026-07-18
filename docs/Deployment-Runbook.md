@@ -88,6 +88,8 @@ Take the approved `db-installed` Proxmox snapshot after successful validation. T
 
 The CRM canary is restricted to `crm01`. It checks out the owner-approved GitHub commit, builds the Node.js 24 LTS Docker image, creates a mode-`0600` `.env.production` file from Vault values, and validates `/healthz` plus the MongoDB connection. It is internal-only and does not create a public Nginx Proxy Manager host.
 
+The canary is currently accessed by internal HTTP, so it explicitly sets `SESSION_COOKIE_SECURE=false`; otherwise a browser cannot retain the login session cookie over HTTP. This override is canary-only. The CRM source defaults to secure cookies in production, and a future Nginx Proxy Manager HTTPS deployment must remove the override or set `SESSION_COOKIE_SECURE=true` before publication.
+
 Run from `ansible/`:
 
 ```bash

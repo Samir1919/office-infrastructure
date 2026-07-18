@@ -2,6 +2,17 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — CRM internal login session fix
+
+### Implemented
+
+- Updated the CRM canary to revision `ae9539ca575df9ffdafe047c49b20fff2473b858`, which makes session-cookie security explicitly configurable.
+- Set `SESSION_COOKIE_SECURE=false` only for the internal HTTP canary, while preserving secure-cookie behaviour as the production default for future HTTPS publication.
+
+### Validated
+
+- CRM `/healthz` returned `200`; the Vault-managed admin completed CSRF-protected login and reached the authenticated dashboard over the internal HTTP canary.
+
 ## 2026-07-19 — CRM canary admin bootstrap
 
 ### Validated
