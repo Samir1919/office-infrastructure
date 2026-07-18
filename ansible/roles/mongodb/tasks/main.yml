@@ -1,0 +1,118 @@
+---
+- name: Verify approved MongoDB host and operating system
+  ansible.builtin.assert:
+    that:
+      - inventory_hostname == 'db01'
+      - ansible_facts['distribution'] == 'Ubuntu'
+      - ansible_facts['distribution_release'] == 'noble'
+    fail_msg: MongoDB 8.3.4 automation is approved only for Ubuntu 24.04 host db01.
+
+- name: Install MongoDB repository prerequisites
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create MongoDB APT keyring directory
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Install MongoDB official signing key
+  ansible.builtin.get_url:
+    url: "https://pgp.mongodb.com/server-{{ mongodb_signing_key_version }}.asc"
+    dest: "/etc/apt/keyrings/mongodb-server-{{ mongodb_signing_key_version }}.asc"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Verify MongoDB repository package index is reachable
+  ansible.builtin.uri:
+    url: "https://repo.mongodb.org/apt/ubuntu/dists/{{ ansible_facts['distribution_release'] }}/mongodb-org/{{ mongodb_major_version }}/multiverse/binary-{{ mongodb_apt_arch }}/Packages.gz"
+    method: HEAD
+    status_code: 200
+    return_content: false
+  check_mode: false
+
+- name: Configure MongoDB official APT repository
+  ansible.builtin.deb822_repository:
+    name: mongodb-org-{{ mongodb_major_version }}
+    types:
+      - deb
+    uris:
+      - https://repo.mongodb.org/apt/ubuntu
+    suites:
+      - "{{ ansible_facts['distribution_release'] }}/mongodb-org/{{ mongodb_major_version }}"
+    components:
+      - multiverse
+    architectures:
+      - "{{ mongodb_apt_arch }}"
+    signed_by: "/etc/apt/keyrings/mongodb-server-{{ mongodb_signing_key_version }}.asc"
+    state: present
+
+- name: Refresh APT cache after configuring MongoDB repository
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 0
+  check_mode: false
+
+- name: Install approved MongoDB Community version
+  ansible.builtin.apt:
+    name: "mongodb-org={{ mongodb_version }}"
+    state: present
+    allow_downgrade: false
+  when: not ansible_check_mode
+
+- name: Configure MongoDB local-only authenticated baseline
+  ansible.builtin.copy:
+    dest: /etc/mongod.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      storage:
+        dbPath: /var/lib/mongodb
+
+      systemLog:
+        destination: file
+        logAppend: true
+        path: /var/log/mongodb/mongod.log
+
+      net:
+        port: {{ mongodb_port }}
+        bindIp: {{ mongodb_bind_ip }}
+
+      processManagement:
+        timeZoneInfo: /usr/share/zoneinfo
+
+      security:
+        authorization: enabled
+  notify: Restart MongoDB
+  when: not ansible_check_mode
+
+- name: Ensure MongoDB service is enabled and running
+  ansible.builtin.service:
+    name: mongod
+    state: started
+    enabled: true
+  when: not ansible_check_mode
+
+- name: Verify installed MongoDB version
+  ansible.builtin.command: mongod --version
+  register: mongodb_version_check
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Assert approved MongoDB version is running
+  ansible.builtin.assert:
+    that:
+      - mongodb_version in mongodb_version_check.stdout
+    fail_msg: "Installed MongoDB version is not {{ mongodb_version }}."
+  when: not ansible_check_mode

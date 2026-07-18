@@ -23,7 +23,7 @@ Use the latest production-supported patch release available at implementation ti
 | Component | Approved release line | Selection rationale |
 |---|---|---|
 | Operating system | Ubuntu Server 24.04 LTS | Existing approved VM baseline |
-| MongoDB on `db01` | MongoDB 8.2.11 | Approved current stable patch release |
+| MongoDB on `db01` | MongoDB 8.3.4 | Approved current stable patch release |
 | Node.js on `crm01` | Node.js 24.x LTS | Latest LTS line; suitable for production deployment |
 | Docker Engine on `crm01` | Docker official stable APT channel | Already installed and managed through the official repository |
 | Docker Compose | Docker Compose plugin from the official stable APT channel | Installed with Docker Engine and updated through the same channel |
@@ -44,7 +44,7 @@ The database name identifies the application and environment, not the hosting VM
 | Source MongoDB | MongoDB 7.0 |
 | Source database | `realestate_crm` |
 | Target host | `db01` |
-| Target MongoDB | MongoDB 8.2.11 |
+| Target MongoDB | MongoDB 8.3.4 |
 | Target database | `crm_prod` |
 | CRM Node.js runtime | Node.js 24.18.0 |
 
@@ -54,7 +54,7 @@ Record and review these facts from the Windows source system before selecting Mo
 
 | Required fact | Why it is needed |
 |---|---|
-| MongoDB server version | Needed to validate dump/restore compatibility with the approved `db01` MongoDB 8.2.11 target. |
+| MongoDB server version | Needed to validate dump/restore compatibility with the approved `db01` MongoDB 8.3.4 target. |
 | Current database name | Needed only to map its collections safely into the approved target database `crm_prod`. |
 | Approximate database size and collection count | Needed to assess disk/RAM impact and validate the import. |
 | GridFS or Windows filesystem uploads | `mongodump` preserves GridFS; filesystem uploads require a separate, verified copy. |
@@ -101,4 +101,4 @@ Stop the pilot if the host enters swap pressure, VM memory is persistently exhau
 
 ## Next implementation decision
 
-After the required source facts are recorded, prepare the MongoDB 8.2.11 role for `db01` and validate it in Ansible check mode. No installation, data migration, or public publication occurs until that design is reviewed and approved.
+After the required source facts are recorded, prepare the MongoDB 8.3.4 role for `db01` and validate it in Ansible check mode. No installation, data migration, or public publication occurs until that design is reviewed and approved.

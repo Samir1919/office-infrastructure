@@ -56,3 +56,30 @@ ansible-playbook playbooks/docker.yml --limit crm01
 ```
 
 Validate Docker Engine and the Compose plugin before applying to the remaining approved Docker hosts.
+
+## MongoDB CRM pilot
+
+MongoDB Community `8.3.4` is automated only for `db01`. The installation sets an authenticated, localhost-only baseline: it is not reachable from the LAN or Internet until a separate approved CRM connection and application-user step.
+
+Run from `ansible/`:
+
+```bash
+ansible-playbook playbooks/mongodb.yml --syntax-check
+ansible-playbook playbooks/mongodb.yml --check --limit db01
+```
+
+After owner review of the check, apply to `db01`:
+
+```bash
+ansible-playbook playbooks/mongodb.yml --limit db01
+```
+
+Validate the running version and listener after the apply:
+
+```bash
+ansible db01 -m command -a 'mongod --version'
+ansible db01 -m command -a 'systemctl is-active mongod'
+ansible db01 -m command -a 'ss -ltnp sport = :27017'
+```
+
+Take the approved `db-installed` Proxmox snapshot after successful validation. The Windows source database `realestate_crm` remains untouched; importing it to `crm_prod` is a later, separately approved step.

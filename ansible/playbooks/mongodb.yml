@@ -1,0 +1,11 @@
+---
+- name: Install MongoDB Community on the approved database host
+  hosts: database
+  become: true
+
+  vars_files:
+    - ../group_vars/all/main.yml
+    - ../group_vars/all/vault.yml
+
+  roles:
+    - mongodb
