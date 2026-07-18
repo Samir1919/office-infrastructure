@@ -2,6 +2,22 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — CRM restore-test cleanup prepared
+
+### Approved
+
+- Remove only the validated temporary `crm_restore_test` database while retaining `crm_prod` and the verified off-host archive.
+
+### Prepared
+
+- Added a cleanup playbook with exact host/database guards, a pre-delete existence check, and a required zero collection count after deletion.
+
+### Implemented and validated
+
+- Removed only `crm_restore_test`; its collection count changed from seven to zero.
+- Retained `crm_prod` and the verified off-host archive; the archive SHA-256 remained `6b8d943368e068046624a45125a924b1ce8f258ef83c68d00fd73bcf99d152a0`.
+- Confirmed `mongod` remained active and the CRM health endpoint returned `{"status":"ok"}` after cleanup.
+
 ## 2026-07-19 — CRM isolated restore test prepared
 
 ### Approved

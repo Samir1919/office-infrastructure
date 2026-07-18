@@ -1,0 +1,112 @@
+---
+- name: Remove the validated isolated CRM restore-test database
+  hosts: database
+  become: true
+
+  vars_files:
+    - ../group_vars/all/main.yml
+    - ../group_vars/all/vault.yml
+    - ../group_vars/all/mongodb-secrets.yml
+
+  vars:
+    mongodb_cleanup_source_database: crm_prod
+    mongodb_cleanup_test_database: crm_restore_test
+    mongodb_cleanup_admin_username: mongodb_admin
+
+  pre_tasks:
+    - name: Enforce exact cleanup scope
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname == 'db01'
+          - mongodb_cleanup_test_database == 'crm_restore_test'
+          - mongodb_cleanup_test_database != mongodb_cleanup_source_database
+          - mongodb_cleanup_source_database == 'crm_prod'
+        fail_msg: >-
+          Cleanup is permitted only for crm_restore_test on db01 and can never
+          target crm_prod.
+
+  tasks:
+    - name: Count collections in the restore-test database before cleanup
+      ansible.builtin.command:
+        argv:
+          - mongosh
+          - --quiet
+          - --host
+          - 127.0.0.1
+          - --authenticationDatabase
+          - admin
+          - --username
+          - "{{ mongodb_cleanup_admin_username }}"
+          - --password
+          - "{{ vault_mongodb_admin_password }}"
+          - --eval
+          - >-
+            db.getSiblingDB({{ mongodb_cleanup_test_database | to_json }}).getCollectionNames().length
+      register: mongodb_cleanup_before
+      changed_when: false
+      no_log: true
+
+    - name: Require the validated restore-test database to exist
+      ansible.builtin.assert:
+        that:
+          - mongodb_cleanup_before.stdout | int > 0
+        fail_msg: crm_restore_test is absent or empty; refusing an unexpected cleanup.
+
+    - name: Drop only the isolated restore-test database
+      ansible.builtin.command:
+        argv:
+          - mongosh
+          - --quiet
+          - --host
+          - 127.0.0.1
+          - --authenticationDatabase
+          - admin
+          - --username
+          - "{{ mongodb_cleanup_admin_username }}"
+          - --password
+          - "{{ vault_mongodb_admin_password }}"
+          - --eval
+          - >-
+            const r=db.getSiblingDB({{ mongodb_cleanup_test_database | to_json }}).dropDatabase();
+            if (r.ok !== 1) { throw new Error('dropDatabase failed'); }
+            print(JSON.stringify({ok:r.ok,dropped:{{ mongodb_cleanup_test_database | to_json }}}));
+      register: mongodb_cleanup_drop
+      changed_when: mongodb_cleanup_drop.rc == 0
+      no_log: true
+
+    - name: Verify the restore-test database has no collections
+      ansible.builtin.command:
+        argv:
+          - mongosh
+          - --quiet
+          - --host
+          - 127.0.0.1
+          - --authenticationDatabase
+          - admin
+          - --username
+          - "{{ mongodb_cleanup_admin_username }}"
+          - --password
+          - "{{ vault_mongodb_admin_password }}"
+          - --eval
+          - >-
+            db.getSiblingDB({{ mongodb_cleanup_test_database | to_json }}).getCollectionNames().length
+      register: mongodb_cleanup_after
+      changed_when: false
+      no_log: true
+
+    - name: Confirm isolated cleanup and protected production database
+      ansible.builtin.assert:
+        that:
+          - mongodb_cleanup_after.stdout | trim == '0'
+          - mongodb_cleanup_test_database == 'crm_restore_test'
+          - mongodb_cleanup_source_database == 'crm_prod'
+        fail_msg: Restore-test cleanup validation failed.
+
+    - name: Report sanitized cleanup evidence
+      ansible.builtin.debug:
+        msg:
+          removed_database: "{{ mongodb_cleanup_test_database }}"
+          collections_before: "{{ mongodb_cleanup_before.stdout | int }}"
+          collections_after: "{{ mongodb_cleanup_after.stdout | int }}"
+          protected_database: "{{ mongodb_cleanup_source_database }}"
+

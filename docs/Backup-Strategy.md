@@ -94,3 +94,9 @@ The verified archive was restored successfully into `crm_restore_test`. The sour
 Archive SHA-256 remained `6b8d943368e068046624a45125a924b1ce8f258ef83c68d00fd73bcf99d152a0` after upload. The protected remote workspace was removed. `mongod` remained active; `db01` reported 1,429 MB available memory and zero swap use; the CRM `/healthz` endpoint returned `200`. The audit-only Proxmox check reported 5.57 GiB of 13.54 GiB usable host memory used, zero swap use, low load, and 745.53 GiB available on `local-lvm`. Only `crm01` and `db01` were running during this point-in-time observation.
 
 This proves that the first archive can be restored with collection, document, and index parity. `crm_restore_test` is retained pending separate cleanup approval; `crm_prod` was not changed.
+
+## Restore-test cleanup
+
+On 2026-07-19 the owner approved removing the validated temporary `crm_restore_test` database. The cleanup playbook `ansible/playbooks/mongodb-restore-test-cleanup.yml` has hard guards for `db01`, exact target `crm_restore_test`, and protected source `crm_prod`. It refuses cleanup if the test database is absent or empty, drops only the exact test database, and requires a zero collection count afterward. The verified off-host archive is not deleted.
+
+Cleanup completed successfully: `crm_restore_test` had seven collections before deletion and zero afterward. `mongod` remained active, the CRM health endpoint returned `{"status":"ok"}`, and the retained archive still matched SHA-256 `6b8d943368e068046624a45125a924b1ce8f258ef83c68d00fd73bcf99d152a0`.
