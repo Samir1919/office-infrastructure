@@ -2,6 +2,19 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — Hardware-upgrade work deferred
+
+### Owner decision
+
+- Deferred all BIOS, RAM, and other hardware-upgrade work until the owner explicitly reopens the subject.
+- Directed the project to continue on the current 16 GB hardware without further upgrade research, purchase preparation, firmware work, or hardware implementation.
+- Retained the existing VM allocations and capacity stop conditions; no VM resize, production cutover, or public CRM publication was approved by this decision.
+
+### Updated
+
+- Replaced the hardware-purchase workflow in the roadmap with current-hardware CRM cutover, backup, rollback, and monitoring preparation.
+- Closed the previously stale Proxmox host-evidence item in the CRM migration plan using the validated audit-only API results.
+
 ## 2026-07-19 — Proxmox BIOS and memory qualification
 
 ### Validated

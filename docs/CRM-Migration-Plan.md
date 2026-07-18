@@ -123,7 +123,7 @@ Before Windows data migration only, the canary may reset its empty `crm_prod` da
 | Database VM resources | 2 vCPU; 1,414 MB available of 1,900 MB; 0 MB swap used; root filesystem 22% used; low load during both samples |
 | MongoDB health | Service active; MongoDB `8.3.4`; 14 current connections; 205 MB resident memory; 275 leads and 4 users reconfirmed |
 | Upload storage | No attachment/upload backend, persistent Docker volume, or GridFS collections; CSV import is submitted as browser-read text, so no separate document copy applies |
-| Proxmox host evidence | Pending: no owner-confirmed trusted Proxmox SSH/API path is configured on the control node |
+| Proxmox host evidence | Completed through the certificate-verified, audit-only API path: low CPU load, 8.22 GiB of 13.54 GiB usable memory used, zero swap use, 8.90% root-filesystem use, and 745.77 GiB available on `local-lvm` |
 
 ## Stop and rollback conditions
 
@@ -131,4 +131,4 @@ Stop the pilot if the host enters swap pressure, VM memory is persistently exhau
 
 ## Next implementation decision
 
-MongoDB 8.3.4 is installed and validated on `db01`. The Vault-managed `crm_app` user has `readWrite` access to `crm_prod` only, and authenticated TCP `27017` access is restricted by UFW to `crm01` only. The Node.js 24 internal canary is validated on `crm01`. A test copy from Windows `realestate_crm` to `crm_prod` imported 275 leads and 4 users; permission taxonomy mapping was applied and owner browser validation found no visible application problem. VM, container, MongoDB, and upload-storage validation found no pilot stop condition. The Windows source remains unchanged and no public publication is included. Before any production cutover, complete the pending `pve01` host/LVM-Thin evidence through an owner-confirmed trusted access path and obtain separate owner approval for the documented capacity and cutover decision.
+MongoDB 8.3.4 is installed and validated on `db01`. The Vault-managed `crm_app` user has `readWrite` access to `crm_prod` only, and authenticated TCP `27017` access is restricted by UFW to `crm01` only. The Node.js 24 internal canary is validated on `crm01`. A test copy from Windows `realestate_crm` to `crm_prod` imported 275 leads and 4 users; permission taxonomy mapping was applied and owner browser validation found no visible application problem. VM, container, MongoDB, upload-storage, and Proxmox host/LVM-Thin validation found no current pilot stop condition. The owner has deferred all hardware-upgrade work and instructed the project to continue on the current hardware. The next documentation-first task is to prepare and validate the production-cutover, backup, and rollback runbook. The Windows source remains unchanged, and production cutover or public publication still requires separate owner approval.

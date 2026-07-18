@@ -113,6 +113,10 @@ MSI's official specification lists two DDR4 slots, 64 GB maximum capacity, dual-
 
 This is a recommendation, not an approved resource change. The owner must choose an option before any VM resize or Phase 5 application rollout.
 
+### Owner deferral — 2026-07-19
+
+The owner has deferred the entire BIOS, RAM, and hardware-upgrade subject and will manage any future upgrade decision independently. Until the owner explicitly reopens it, no further compatibility research, vendor confirmation, purchase preparation, firmware work, hardware change, or upgrade reminder is in scope. Project work continues on the current 16 GB host with the existing VM allocations and monitoring boundaries. This deferral does not make the full 26 GB target allocation safe and does not authorize any VM resize.
+
 ## BIOS and memory qualification — 2026-07-19
 
 The host reports AMI BIOS `A.20` with SMBIOS release date `2024-04-09`. MSI's support page maps the `A.20` generation to stable package `7C52vA2`, which includes AGESA ComboAm4v2PI `1.2.0.C`. MSI lists Ryzen 7 5700G support from the board's initial `A0` BIOS, and its board specification requires only ComboPI `1.0.0.3` or newer for 64 GB support. The current firmware therefore satisfies the published CPU and capacity prerequisites; a BIOS update is not required solely to recognize 64 GB.
@@ -134,19 +138,16 @@ Qualification sources: [MSI BIOS, CPU and memory compatibility](https://www.msi.
 
 ## Required validation before a decision
 
-1. Owner chooses whether to retain current BIOS `A.20` or approve a separate update to stable `7C52vA5`; no firmware update is implied by the RAM recommendation.
-2. Obtain written seller/manufacturer confirmation for two `KVR32N22D8/32` modules on MSI `B450M-A PRO MAX II`, or deliberately choose an available QVL-listed DDR4-2666 alternative.
-3. Approve the 64 GB target, exact modules, purchase, return policy, and maintenance window.
-4. After installation, run an offline memory test and repeat Proxmox host/VM health validation.
-5. Update the VM resource plan only after successful hardware validation and separate owner approval, then snapshot affected VMs before application deployment.
+Hardware-upgrade validation is deferred. If the owner explicitly reopens the subject later, review these previously gathered facts against then-current hardware, firmware, availability, and project requirements before making any decision. Until then, retain the current allocations and use the pilot stop conditions for ongoing work.
 
 ## Decision record
 
 | Decision item | Owner decision |
 |---|---|
-| Selected host memory target | Pending owner approval; 64 GB (2 × 32 GB) recommended |
+| Hardware-upgrade work | Deferred by owner; no action or follow-up until explicitly reopened |
+| Selected host memory target | No current selection; previous 64 GB recommendation retained only as historical analysis |
 | Current BIOS | `A.20` recorded; sufficient for published CPU/64 GB prerequisites |
-| BIOS update | Not approved; stable `7C52vA5` is an optional separate maintenance decision |
+| BIOS update | Out of scope until owner explicitly reopens the subject |
 | Hardware compatibility confirmed | Board-level 64 GB support confirmed; QVL-listed DDR4-2666 and non-QVL current DDR4-3200 paths documented; exact purchase remains pending |
-| Maintenance window | Pending |
+| Maintenance window | Not applicable while deferred |
 | VM resize plan approved | Not approved; existing allocation retained for limited CRM pilot |

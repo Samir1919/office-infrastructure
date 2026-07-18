@@ -135,15 +135,15 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 - The least-privilege Proxmox inspection path is provisioned and validated: dedicated `infra-audit@pve!codex` API token, built-in `PVEAuditor` role, privilege separation, token secret in macOS Keychain, and owner-verified pinned TLS certificate. Effective permissions contain audit privileges only; insecure TLS bypass and root SSH automation are not approved.
 - The post-migration `pve01` observation reported Proxmox VE `9.2.4`, low CPU load, 8.22 GiB of 13.54 GiB API-reported usable memory in use, zero swap use, and 8.90% root-filesystem use. `local-lvm` was active with 48.02 GiB used and 745.77 GiB available. This point-in-time result had five production VMs running while `pbx01` and `mon01` were stopped; it does not approve the full target profile on the current 16 GB host.
 - Hardware inventory confirmed an MSI `B450M-A PRO MAX II (MS-7C52)` motherboard with two DDR4 slots, both occupied by matching 8 GB DDR4-3200 non-ECC unbuffered DIMMs. MSI supports up to 64 GB on this board, and AMD specifies DDR4-3200 for the Ryzen 7 5700G. The current AMI `A.20` BIOS satisfies MSI's published Ryzen 7 5700G and 64 GB prerequisites, so a firmware update is not required solely for capacity support. MSI's old Ryzen 5000G QVL confirms two-DIMM operation for several 32 GB DDR4-2666 modules but does not list a 32 GB DDR4-3200 part. Kingston `KVR32N22D8/32` is a current JEDEC DDR4-3200 1.2 V candidate that matches the published electrical specification, but exact-board vendor confirmation and owner purchase approval remain pending.
+- On 2026-07-19 the owner deferred all BIOS, RAM, and other hardware-upgrade work. The project must continue on the current hardware without further upgrade research, purchase preparation, firmware work, or hardware implementation until the owner explicitly reopens the subject. The existing capacity limits remain in force; this deferral does not approve VM resizing or the full 26 GB target allocation.
 - The empty CRM canary database was reset once before migration and bootstrapped with the Vault-managed `Admin User` account for `admin@asalagroupbd.com`. The known repository fallback password was not used.
 
 ## Next approved implementation step
 
-1. Owner decides whether to keep BIOS `A.20` or separately approve the optional stable `7C52vA5` update; beta firmware is excluded from the baseline.
-2. Obtain exact-board seller/manufacturer confirmation and a return option for 2 × Kingston `KVR32N22D8/32`, or deliberately select an available MSI-QVL DDR4-2666 alternative.
-3. Obtain separate owner approval for the 64 GB target, exact modules, purchase, return policy, and maintenance window.
-4. After the hardware upgrade, run an offline memory test and repeat Proxmox/VM health validation before proposing any VM resize or production cutover.
-5. Do not resize VMs, perform production cutover, or publish the CRM until those approvals and validations are recorded.
+1. Continue CRM preparation on the current 16 GB host and retain the existing 2 vCPU / 2 GB / 32 GB allocations.
+2. Prepare and validate the CRM production-cutover, backup, and rollback runbook using the already validated canary evidence; do not execute cutover or public publication without separate owner approval.
+3. Continue read-only host, VM, CRM, and MongoDB capacity monitoring and stop expansion if the documented pressure conditions occur.
+4. Do not research, recommend, purchase, or implement BIOS, RAM, or other hardware updates until the owner explicitly reopens the subject.
 
 ## Supporting references
 
