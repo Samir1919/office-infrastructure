@@ -2,6 +2,22 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — CRM persistent session canary
+
+### Approved and prepared
+
+- Approved the MongoDB-backed session design for the constrained internal CRM pilot.
+- Pinned CRM revision `e7a9ddbf8e8e3b12ba187906484e813150a3490f` and documented rollback to `ae9539ca575df9ffdafe047c49b20fff2473b858`.
+- Excluded the ephemeral `sessions` collection from future CRM data archives so recovery intentionally signs users out.
+- Added a guarded, repeatable session metadata and optional restart validation playbook.
+
+### Implemented and machine-validated
+
+- Deployed the pinned revision to the internal-only `crm01` canary without enabling the database-reset path.
+- Confirmed CRM health, MongoDB connectivity, the `crm_prod.sessions` collection, its expiry TTL index, and unchanged counts of 275 leads and 4 users.
+- Retained `SESSION_COOKIE_SECURE=false` only for the current internal HTTP canary; no DNS, NPM, TLS, router, database privilege, VM sizing, or hardware change was made.
+- Browser login persistence across an application-container restart remains the final validation gate and is not yet recorded as passed.
+
 ## 2026-07-19 — Bilingual new-control-node guide
 
 ### Updated
