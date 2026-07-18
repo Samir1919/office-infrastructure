@@ -16,6 +16,11 @@ This is the durable history of completed and validated work. Planned work belong
 - MongoDB `8.3.4` as the CRM pilot target and `crm_prod` as the new production database name.
 - Confirmed Windows source mapping: MongoDB 7.0 database `realestate_crm` to `db01` MongoDB 8.3.4 database `crm_prod`.
 
+### Validated
+
+- MongoDB Community `8.3.4` installed on `db01` from the official repository.
+- `mongod` is enabled and active, with authentication enabled and `127.0.0.1:27017` as its only listener.
+
 ## 2026-07-18 — Remote administration and secure external access policy
 
 ### Added

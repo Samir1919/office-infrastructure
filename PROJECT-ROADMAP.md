@@ -127,13 +127,14 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 - The common role passed syntax validation, was applied and validated on all seven production VMs, and each VM has a `common-base` snapshot.
 - The macOS Keychain provides the local Vault password; the encrypted Vault file is versioned only in the private repository.
 - Docker Engine and Compose are installed and validated on `crm01`, `web01`, `erp01`, and `npm01`; each has a `docker-base` snapshot.
+- MongoDB Community `8.3.4` is installed and validated on `db01`. The initial baseline has authorization enabled and listens only on `127.0.0.1:27017`; no CRM user, LAN access, or data migration has been applied.
 
 ## Next approved implementation step
 
-1. Collect the existing Windows CRM source facts: MongoDB version, source database name, document-upload storage method, Node.js version, package manager, and application start command.
-2. Create and validate a version-pinned MongoDB design/Ansible role for `db01` in check mode; do not migrate production data yet.
-3. Prepare the `crm01` Node.js Compose and environment design using the documented source facts, then run a non-public canary and monitor capacity.
-4. Complete the full Phase 5 and Phase 6 rollout only after a separate owner-approved resource and cutover decision.
+1. Take the `db-installed` Proxmox snapshot after the validated MongoDB baseline.
+2. Document and approve creation of a MongoDB administrative user and least-privilege `crm_prod` application user in Ansible Vault.
+3. Extend the MongoDB configuration to accept authenticated internal access from `crm01` only, then validate it without public exposure.
+4. Collect the CRM package-manager, startup-command, and document-upload storage facts before preparing the Node.js Compose canary and test migration.
 
 ## Supporting references
 

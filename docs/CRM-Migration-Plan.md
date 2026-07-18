@@ -101,4 +101,4 @@ Stop the pilot if the host enters swap pressure, VM memory is persistently exhau
 
 ## Next implementation decision
 
-After the required source facts are recorded, prepare the MongoDB 8.3.4 role for `db01` and validate it in Ansible check mode. No installation, data migration, or public publication occurs until that design is reviewed and approved.
+MongoDB 8.3.4 is installed and validated on `db01` with authorization enabled and a localhost-only listener. The next database step is a documented and owner-approved Vault-managed administrative user plus least-privilege `crm_prod` application user, followed by authenticated access from `crm01` only. No data migration or public publication is included.
