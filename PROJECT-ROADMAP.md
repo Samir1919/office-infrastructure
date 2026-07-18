@@ -134,13 +134,15 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 - The CRM has no document-attachment subsystem, filesystem upload path, persistent Docker volume, or GridFS collections. CSV import is read in the browser and submitted as text; therefore no separate uploaded-document migration is applicable to the current revision.
 - The least-privilege Proxmox inspection path is provisioned and validated: dedicated `infra-audit@pve!codex` API token, built-in `PVEAuditor` role, privilege separation, token secret in macOS Keychain, and owner-verified pinned TLS certificate. Effective permissions contain audit privileges only; insecure TLS bypass and root SSH automation are not approved.
 - The post-migration `pve01` observation reported Proxmox VE `9.2.4`, low CPU load, 8.22 GiB of 13.54 GiB API-reported usable memory in use, zero swap use, and 8.90% root-filesystem use. `local-lvm` was active with 48.02 GiB used and 745.77 GiB available. This point-in-time result had five production VMs running while `pbx01` and `mon01` were stopped; it does not approve the full target profile on the current 16 GB host.
+- Hardware inventory confirmed an MSI `B450M-A PRO MAX II (MS-7C52)` motherboard with two DDR4 slots, both occupied by matching 8 GB DDR4-3200 non-ECC unbuffered DIMMs. MSI supports up to 64 GB on this board, and AMD specifies DDR4-3200 for the Ryzen 7 5700G. Because the two-slot board requires replacing both current DIMMs and 32 GB remains below the calculated 35.2 GB planning requirement, a matched 2 × 32 GB DDR4-3200 kit is the recommended practical target; exact BIOS/QVL compatibility and owner purchase approval remain pending.
 - The empty CRM canary database was reset once before migration and bootstrapped with the Vault-managed `Admin User` account for `admin@asalagroupbd.com`. The known repository fallback password was not used.
 
 ## Next approved implementation step
 
-1. Confirm `pve01` motherboard RAM-slot count, supported DIMM capacity, installed memory layout, and whether the 48 GB minimum or 64 GB preferred planning target is physically achievable.
-2. Prepare the documented capacity and production-cutover decision for separate owner approval.
-3. Do not resize VMs, perform production cutover, or publish the CRM until those approvals are recorded.
+1. Record the current `pve01` BIOS version and select an exact matched 2 × 32 GB DDR4-3200 non-ECC UDIMM kit from MSI's compatibility information or the memory vendor's board-qualified list.
+2. Obtain separate owner approval for the 64 GB target, exact kit, purchase, and maintenance window.
+3. After the hardware upgrade, run a memory test and repeat Proxmox/VM health validation before proposing any VM resize or production cutover.
+4. Do not resize VMs, perform production cutover, or publish the CRM until those approvals and validations are recorded.
 
 ## Supporting references
 

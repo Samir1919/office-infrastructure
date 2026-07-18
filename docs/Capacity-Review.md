@@ -13,6 +13,11 @@
 | Current VM memory allocation | 7 × 2 GB = 14 GB |
 | Nominal memory left before host overhead | 2 GB |
 | Local runtime storage | 1 TB NVMe, LVM-Thin |
+| Motherboard | MSI `B450M-A PRO MAX II (MS-7C52)`, revision 2.0 |
+| Memory slots | 2 DDR4 slots; both occupied |
+| Installed memory | 2 × 8 GB DDR4-3200, non-ECC unbuffered, 1.2 V, single-rank |
+| Installed DIMM part number | `HKED4081CAA2F2HB1` in both channels |
+| Board maximum | 64 GB across 2 slots |
 
 The 14 GB total is the configured baseline allocation, not a guarantee of actual RAM use. Even so, it leaves too little headroom for the Proxmox host, filesystem cache, temporary peaks, or application deployment.
 
@@ -56,7 +61,7 @@ The owner has approved a preparation and canary exception while the current hard
 | Other services | ERP, FreePBX, website, NPM publication, monitoring rollout remain out of scope |
 | Required observation | Host/VM CPU, memory, swap, disk/LVM-Thin capacity, and MongoDB health |
 
-If sustained memory pressure, swap activity, disk pressure, or unacceptable CRM/MongoDB response time appears, stop the pilot and defer further deployment until hardware is upgraded. The recommended 48 GB minimum and 64 GB preferred planning targets remain unchanged.
+If sustained memory pressure, swap activity, disk pressure, or unacceptable CRM/MongoDB response time appears, stop the pilot and defer further deployment until hardware is upgraded. The calculated requirement remains above 35.2 GB; the confirmed two-slot board makes a matched 64 GB kit the practical recommendation.
 
 ### Migrated canary observation — 2026-07-19
 
@@ -88,36 +93,38 @@ No VM-level stop condition was observed. The owner subsequently approved and pro
 | Running production VMs | `crm01`, `db01`, `web01`, `erp01`, `npm01` |
 | Stopped production VMs | `pbx01`, `mon01` |
 
-The host and migrated CRM pilot showed no current stop condition. This is a point-in-time result with two production VMs stopped; it does not demonstrate that all seven production VMs or the 26 GB target service profile can run safely on the current host. The 48 GB minimum and 64 GB preferred production planning recommendations remain unchanged.
+The host and migrated CRM pilot showed no current stop condition. This is a point-in-time result with two production VMs stopped; it does not demonstrate that all seven production VMs or the 26 GB target service profile can run safely on the current host. The practical 64 GB production planning recommendation remains unchanged.
 
 ## Options and trade-offs
 
 | Option | Benefits | Risks / limitations |
 |---|---|---|
 | Keep 16 GB | No hardware cost; suitable for baseline automation and limited lab validation | Insufficient for the target profile; production application rollout is blocked |
-| Upgrade to 32 GB | May support strictly phased, reduced-resource testing | Marginal for the complete target profile; limited host/cache/growth headroom |
-| Upgrade to 48 GB | Covers the calculated 35.2 GB planning requirement with useful headroom | Requires compatible RAM purchase and a maintenance window |
-| Upgrade to 64 GB | Stronger growth and recovery headroom for databases, monitoring, backups, and future services | Higher cost; compatibility must be confirmed |
+| Upgrade to 32 GB (2 × 16 GB) | Standard matched dual-channel kit; lower cost | Below the calculated 35.2 GB target-plus-headroom requirement; not recommended for the full plan |
+| Upgrade to 48 GB | Meets the arithmetic minimum | No standard symmetric capacity using the board's two occupied slots; mixed 32+16 or 24 GB DIMMs add compatibility/dual-channel uncertainty and are not recommended |
+| Upgrade to 64 GB (2 × 32 GB) | Board maximum; matched dual-channel kit; strongest growth, backup, monitoring, and recovery headroom | Higher cost; exact BIOS/QVL or vendor board-compatibility must be confirmed before purchase |
 
 ## Recommendation
 
-Use **48 GB as the minimum production planning target** before Phase 5 application deployment. Prefer **64 GB** if compatible with `pve01` and budget allows, because the project includes future database growth, backup activity, monitoring, and disaster-recovery work.
+The MSI board's two-slot layout makes **64 GB as a matched 2 × 32 GB DDR4-3200 kit** the recommended practical production target. Although 48 GB exceeds the calculated 35.2 GB planning requirement, it does not map cleanly to a standard matched symmetric kit on this board. A 32 GB kit remains below the planning requirement.
+
+MSI's official specification lists two DDR4 slots, 64 GB maximum capacity, dual-channel operation, and non-ECC unbuffered UDIMM support. AMD specifies up to DDR4-3200 for the installed Ryzen 7 5700G. Use a matched 1.2 V non-ECC UDIMM kit; do not combine the existing 8 GB modules with new modules or depend on an overclocked memory profile for the infrastructure baseline. See the [MSI motherboard specification](https://www.msi.com/Motherboard/B450M-A-PRO-MAX-II/Specification) and [AMD Ryzen 7 5700G specification](https://www.amd.com/en/support/downloads/drivers.html/processors/ryzen/ryzen-5000-series/amd-ryzen-7-5700g.html).
 
 This is a recommendation, not an approved resource change. The owner must choose an option before any VM resize or Phase 5 application rollout.
 
 ## Required validation before a decision
 
-1. Confirm `pve01` motherboard RAM-slot count, supported DIMM capacity, and compatible DDR4 specification.
-2. Record current Proxmox memory use, swap state, CPU load, and LVM-Thin free space.
-3. Confirm that 48 GB or 64 GB is physically achievable with the installed memory layout.
-4. Select the approved target capacity and maintenance window.
-5. Update the VM resource plan only after owner approval, then validate and snapshot affected VMs before application deployment.
+1. Record the current motherboard BIOS version.
+2. Select an exact matched 2 × 32 GB DDR4-3200 non-ECC unbuffered 1.2 V kit from MSI's compatibility information or the memory vendor's explicit `B450M-A PRO MAX II` support list.
+3. Approve the 64 GB target, exact kit, purchase, and maintenance window.
+4. After installation, run a memory test and repeat Proxmox host/VM health validation.
+5. Update the VM resource plan only after successful hardware validation and separate owner approval, then snapshot affected VMs before application deployment.
 
 ## Decision record
 
 | Decision item | Owner decision |
 |---|---|
-| Selected host memory target | Pending; 48 GB minimum planning target, 64 GB preferred |
-| Hardware compatibility confirmed | Pending |
+| Selected host memory target | Pending owner approval; 64 GB (2 × 32 GB) recommended |
+| Hardware compatibility confirmed | Board-level 64 GB support confirmed; current BIOS and exact kit compatibility pending |
 | Maintenance window | Pending |
 | VM resize plan approved | Not approved; existing allocation retained for limited CRM pilot |

@@ -2,6 +2,16 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — Proxmox memory hardware inventory
+
+### Validated
+
+- Identified the `pve01` motherboard as MSI `B450M-A PRO MAX II (MS-7C52)`, revision 2.0.
+- Confirmed both available DDR4 slots are occupied by matching 8 GB DDR4-3200 non-ECC unbuffered 1.2 V DIMMs, for 16 GB total.
+- Verified MSI's official 64 GB board maximum and AMD's DDR4-3200 specification for the Ryzen 7 5700G.
+- Documented a matched 2 × 32 GB DDR4-3200 kit as the recommended practical target; BIOS version, exact kit compatibility, owner purchase approval, and maintenance window remain pending.
+- No hardware, BIOS, VM resource, or production configuration change was performed.
+
 ## 2026-07-19 — Proxmox read-only API access design
 
 ### Approved
