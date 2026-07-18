@@ -10,6 +10,12 @@ This is the durable history of completed and validated work. Planned work belong
 - Documented rollback to the currently validated persistent-session revision `e7a9ddbf8e8e3b12ba187906484e813150a3490f`.
 - Kept database reset disabled and retained the internal-only network boundary, MongoDB-backed session store, protected record-count gates, and browser validation requirement.
 
+### Implemented and machine-validated
+
+- Deployed the pinned revision to the internal-only `crm01` canary; the reset and remigration tasks remained disabled and were skipped.
+- Confirmed `/healthz`, MongoDB connectivity, exact revision `1a8301bca2b4b57bd40a4847b0f83aaa40c6b341`, the session collection and TTL index, 80 current session documents, 275 leads, and 4 users.
+- Retained the existing NPM/DNS/TLS/router, database privileges, VM resources, and hardware state. Owner browser acceptance using Enter remains pending.
+
 ## 2026-07-19 — CRM persistent session canary
 
 ### Approved and prepared
