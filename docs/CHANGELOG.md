@@ -2,6 +2,13 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — Application container timezone standard
+
+### Implemented
+
+- Added the project `Asia/Dhaka` timezone explicitly to the CRM application container environment.
+- Documented the standard that every future Docker application service must receive the project timezone explicitly.
+
 ## 2026-07-19 — CRM internal login session fix
 
 ### Implemented

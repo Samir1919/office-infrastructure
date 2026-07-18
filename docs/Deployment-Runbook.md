@@ -90,6 +90,8 @@ The CRM canary is restricted to `crm01`. It checks out the owner-approved GitHub
 
 The canary is currently accessed by internal HTTP, so it explicitly sets `SESSION_COOKIE_SECURE=false`; otherwise a browser cannot retain the login session cookie over HTTP. This override is canary-only. The CRM source defaults to secure cookies in production, and a future Nginx Proxy Manager HTTPS deployment must remove the override or set `SESSION_COOKIE_SECURE=true` before publication.
 
+All application containers must explicitly receive the project `timezone` value (`Asia/Dhaka` currently) through their Compose environment. Docker containers otherwise default to UTC even when their VM uses the correct local timezone. The CRM canary is the first deployed application to use this standard; future Website, ERP, and Nginx Proxy Manager deployments must apply it in their own service templates.
+
 Run from `ansible/`:
 
 ```bash
