@@ -13,6 +13,7 @@ This is the durable history of completed and validated work. Planned work belong
 
 - Source-fact requirements and safe MongoDB migration approach for moving the Windows CRM data.
 - Capacity monitoring and cutover boundaries that keep full Phase 5 and Phase 6 deployment pending.
+- MongoDB `8.2.11` as the CRM pilot target and `office_crm` as the new target database name.
 
 ## 2026-07-18 — Remote administration and secure external access policy
 

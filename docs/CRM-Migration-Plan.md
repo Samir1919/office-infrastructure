@@ -23,12 +23,16 @@ Use the latest production-supported patch release available at implementation ti
 | Component | Approved release line | Selection rationale |
 |---|---|---|
 | Operating system | Ubuntu Server 24.04 LTS | Existing approved VM baseline |
-| MongoDB on `db01` | MongoDB 8.2.x stable | Current stable MongoDB release line |
+| MongoDB on `db01` | MongoDB 8.2.11 | Approved current stable patch release |
 | Node.js on `crm01` | Node.js 24.x LTS | Latest LTS line; suitable for production deployment |
 | Docker Engine on `crm01` | Docker official stable APT channel | Already installed and managed through the official repository |
 | Docker Compose | Docker Compose plugin from the official stable APT channel | Installed with Docker Engine and updated through the same channel |
 
 Do not use preview, `Current`, beta, release-candidate, or end-of-life releases. In particular, Node.js 26.x is a Current release rather than LTS, so it is not the CRM deployment target. Record the exact installed package versions in the implementation validation evidence.
+
+## Approved target database
+
+The new CRM database on `db01` is **`office_crm`**. This is a new, project-owned database name selected for the Office Infrastructure Project; do not reuse the existing Windows database name. The source database remains unchanged until the separately approved final cutover.
 
 ## Facts required before implementation
 
@@ -36,15 +40,15 @@ Record and review these facts from the Windows source system before selecting Mo
 
 | Required fact | Why it is needed |
 |---|---|
-| MongoDB server version | Needed to validate dump/restore compatibility with the approved `db01` MongoDB 8.2.x target. |
-| Current database name | Needed to create a deliberate new target database and namespace mapping. |
+| MongoDB server version | Needed to validate dump/restore compatibility with the approved `db01` MongoDB 8.2.11 target. |
+| Current database name | Needed only to map its collections safely into the approved target database `office_crm`. |
 | Approximate database size and collection count | Needed to assess disk/RAM impact and validate the import. |
 | GridFS or Windows filesystem uploads | `mongodump` preserves GridFS; filesystem uploads require a separate, verified copy. |
 | Node.js major version | Needed to choose the matching runtime on `crm01`. |
 | Package manager and lockfile | Needed for reproducible dependency installation (`npm`, `yarn`, or `pnpm`). |
 | Application start/build command and required environment variables | Needed for a working Compose service without guessing. |
 
-The new database name must be explicitly chosen by the owner before migration. Do not reuse, rename, or delete the Windows source database during the pilot.
+Do not reuse, rename, or delete the Windows source database during the pilot.
 
 ## Proposed migration method
 
@@ -62,8 +66,8 @@ mongodump --uri="mongodb://localhost:27017/<source_database>" \
   --archive=crm-test.archive --gzip
 
 mongorestore \
-  --uri="mongodb://<user>:<password>@db01:27017/<target_database>?authSource=admin" \
-  --nsFrom="<source_database>.*" --nsTo="<target_database>.*" \
+  --uri="mongodb://<user>:<password>@db01:27017/office_crm?authSource=admin" \
+  --nsFrom="<source_database>.*" --nsTo="office_crm.*" \
   --archive=crm-test.archive --gzip
 ```
 
@@ -83,4 +87,4 @@ Stop the pilot if the host enters swap pressure, VM memory is persistently exhau
 
 ## Next implementation decision
 
-After the required source facts are recorded, prepare the MongoDB 8.2.x role for `db01` and validate it in Ansible check mode. No installation, data migration, or public publication occurs until that design is reviewed and approved.
+After the required source facts are recorded, prepare the MongoDB 8.2.11 role for `db01` and validate it in Ansible check mode. No installation, data migration, or public publication occurs until that design is reviewed and approved.
