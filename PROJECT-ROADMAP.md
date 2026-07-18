@@ -71,6 +71,7 @@ The approved automation layer improves implementation quality without changing t
 | 4.0 | Ansible control plane, SSH keys, and inventory | Complete |
 | 4.1 | Common baseline role and validation | Complete |
 | 4.2 | Docker Engine and Compose on Docker hosts | Complete |
+| 4.3 | VPN-based Remote Administration, Wake-on-LAN strategy and secure remote access baseline | Pending |
 | 5 | CRM, website, ERP, Nginx Proxy Manager | Pending |
 | 6 | MongoDB, PostgreSQL, database security and backups | Pending |
 | 7 | FreePBX | Pending |
@@ -81,6 +82,26 @@ The approved automation layer improves implementation quality without changing t
 ## Docker policy
 
 Docker is planned only for `crm01`, `web01`, `erp01`, and `npm01`. Do not install Docker on `db01` or `pbx01`. Decide `mon01` containerization during monitoring design.
+
+
+
+
+## Remote administration policy
+
+- No production VM will be exposed directly to the Internet.
+- Proxmox Web UI (8006) must never be publicly port-forwarded.
+- SSH (22) must never be directly exposed to the Internet.
+- Database ports (MongoDB, PostgreSQL) must never be publicly exposed.
+- Remote administration must be performed through a VPN (preferred: Tailscale initially, WireGuard/OpenVPN or future firewall VPN later).
+- Remote power-off is performed over VPN + SSH.
+- Remote power-on is performed using Wake-on-LAN from an always-on LAN device (future firewall, NAS, backup server, Raspberry Pi or equivalent).
+- Direct UDP WoL broadcast forwarding from the Internet is not part of the standard architecture.
+- Public application traffic will enter only through `npm01`.
+- Router port forwarding should eventually expose only:
+  - TCP 80 → `npm01`
+  - TCP 443 → `npm01`
+- CRM, ERP, Website and future applications are published through Nginx Proxy Manager using reverse proxy and HTTPS.
+- FreePBX public exposure will be documented separately during Phase 7 after security review.
 
 ## Resource and capacity gate
 

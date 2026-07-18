@@ -2,6 +2,16 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-18 — Remote administration and secure external access policy
+
+### Added
+
+- Approved remote administration architecture.
+- VPN-first management policy.
+- Reverse proxy as the single public ingress.
+- Wake-on-LAN strategy for remote power management.
+- Documentation for secure external access.
+
 ## 2026-07-17 — Repository and automation foundation
 
 ### Added
