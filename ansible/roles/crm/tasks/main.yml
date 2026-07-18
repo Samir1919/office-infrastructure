@@ -32,6 +32,41 @@
     mode: '0600'
   no_log: true
 
+- name: Stop CRM before resetting the empty canary database
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - down
+  args:
+    chdir: "{{ crm_deploy_path }}"
+  changed_when: true
+  when:
+    - not ansible_check_mode
+    - crm_reset_canary_database | bool
+
+- name: Reset the empty CRM canary database before admin bootstrap
+  ansible.builtin.command:
+    argv:
+      - mongosh
+      - --quiet
+      - --host
+      - 127.0.0.1
+      - --authenticationDatabase
+      - admin
+      - --username
+      - mongodb_admin
+      - --password
+      - "{{ vault_mongodb_admin_password }}"
+      - --eval
+      - "db.getSiblingDB({{ crm_database_name | to_json }}).dropDatabase()"
+  delegate_to: db01
+  no_log: true
+  changed_when: true
+  when:
+    - not ansible_check_mode
+    - crm_reset_canary_database | bool
+
 - name: Build and start the non-public CRM canary
   ansible.builtin.command:
     argv:

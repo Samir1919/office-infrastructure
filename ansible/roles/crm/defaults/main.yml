@@ -7,3 +7,6 @@ crm_database_host: '192.168.10.102'
 crm_database_port: 27017
 crm_database_name: 'crm_prod'
 crm_database_user: 'crm_app'
+crm_bootstrap_admin_name: 'Admin User'
+crm_bootstrap_admin_email: 'admin@asalagroupbd.com'
+crm_reset_canary_database: false

@@ -97,6 +97,10 @@ If the CRM stores uploaded files on the Windows filesystem rather than GridFS, i
 
 The CRM Docker Compose service publishes TCP `3000` for the internal canary only. It receives no public DNS, Nginx Proxy Manager host, TLS certificate, or router port forwarding.
 
+The initial admin identity follows the CRM repository configuration: `Admin User` / `admin@asalagroupbd.com`. Its password is a unique Vault-managed value stored locally in the owner’s macOS Keychain; the repository's exposed example password is never used on `crm01`.
+
+Before Windows data migration only, the canary may reset its empty `crm_prod` database to bootstrap this admin identity. This reset is prohibited after test or production data has been imported.
+
 ### Canary validation record
 
 | Check | Validated result |

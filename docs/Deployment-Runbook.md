@@ -95,3 +95,11 @@ ansible-playbook playbooks/crm.yml --syntax-check
 ansible-playbook playbooks/crm.yml --check --limit crm01
 ansible-playbook playbooks/crm.yml --limit crm01
 ```
+
+For the one-time admin bootstrap on the empty canary database only, run:
+
+```bash
+ansible-playbook playbooks/crm.yml --limit crm01 -e crm_reset_canary_database=true
+```
+
+Do not run the reset after importing Windows test or production data.
