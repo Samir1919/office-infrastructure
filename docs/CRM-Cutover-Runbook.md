@@ -1,10 +1,12 @@
 # CRM Production Cutover Runbook
 
-**Status:** Prepared for review; rehearsal and production cutover are not approved
+**Status:** Contingency reference; owner confirmed no new Windows data, so rehearsal and remigration are not currently required
 **Scope:** Internal CRM transition from the Windows MongoDB `realestate_crm` source to `crm01` and `db01` on the current 16 GB `pve01` host
 **Out of scope:** Public DNS, Nginx Proxy Manager publication, Internet exposure, VM resizing, hardware work, and deletion of the Windows source
 
 ## Safety model
+
+On 2026-07-19 the owner confirmed that the Windows CRM received no new data after the validated copy to `crm_prod`. The migrated database is therefore the latest known dataset. Do not run this cutover or rehearsal procedure while that fact remains true; retain it only in case Windows writes resume or the owner requests a remigration.
 
 - The Windows CRM and its database remain the authoritative source until the owner accepts final validation.
 - A final migration requires a confirmed maintenance window and a complete application write freeze.
@@ -138,4 +140,4 @@ After users have written to the new CRM, immediately returning to Windows can lo
 
 ## Prepared status
 
-The procedure, gates, validation evidence, and rollback boundaries are documented. FileVault and 292 GiB of available control-node storage are validated. Execution remains blocked on owner selection of the interim backup option, validation of the exact destination permissions and final archive size, a repeatable permission-taxonomy mapping procedure, and separate rehearsal approval.
+The procedure, gates, validation evidence, and rollback boundaries are documented as a contingency. Because the owner confirmed there is no newer Windows data, execution is unnecessary and deferred. Backup protection for the current `crm_prod` dataset is a separate task and still requires approval of its destination and retention policy.

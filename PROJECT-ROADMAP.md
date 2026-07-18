@@ -130,6 +130,7 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 - Docker Engine and Compose are installed and validated on `crm01`, `web01`, `erp01`, and `npm01`; each has a `docker-base` snapshot.
 - MongoDB Community `8.3.4` is installed and validated on `db01`. Authorization is enabled; `crm_app` has `readWrite` access to `crm_prod` only; UFW allows TCP `27017` only from `crm01` and SSH only from the office server LAN. A test migration from Windows `realestate_crm` to `crm_prod` imported 275 leads and 4 users; the Windows source remains unchanged.
 - The internal CRM canary is deployed on `crm01` from Git revision `ae9539ca575df9ffdafe047c49b20fff2473b858`, runs Node.js `v24.18.0`, returns healthy from `/healthz`, connects to `crm_prod`, and has passed authenticated internal login validation. Permission taxonomy mapping was applied to the migrated users, and owner browser validation found the CRM operating normally with no visible problem. It has no Nginx Proxy Manager host, public DNS, TLS certificate, or router forwarding.
+- The owner confirmed on 2026-07-19 that no new data was entered in the Windows CRM after the validated migration. The current `crm_prod` copy therefore contains the latest source data known to the owner; no additional delta migration, Windows write freeze, or `crm_restore_test` rehearsal is required while that remains true. The cutover runbook is retained only as a contingency if the Windows source receives new writes or a future remigration is requested.
 - Read-only migrated-workload validation found no current pilot stop condition. Both VMs had about 1.4 GB available memory, zero active swap use, 22% root-disk use, and low CPU load. The CRM container was healthy with zero error/fatal/exception matches in its latest 200 log lines; MongoDB was active with 14 current connections and 205 MB resident memory.
 - The CRM has no document-attachment subsystem, filesystem upload path, persistent Docker volume, or GridFS collections. CSV import is read in the browser and submitted as text; therefore no separate uploaded-document migration is applicable to the current revision.
 - The least-privilege Proxmox inspection path is provisioned and validated: dedicated `infra-audit@pve!codex` API token, built-in `PVEAuditor` role, privilege separation, token secret in macOS Keychain, and owner-verified pinned TLS certificate. Effective permissions contain audit privileges only; insecure TLS bypass and root SSH automation are not approved.
@@ -141,9 +142,9 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 ## Next approved implementation step
 
 1. Continue CRM preparation on the current 16 GB host and retain the existing 2 vCPU / 2 GB / 32 GB allocations.
-2. Review the prepared CRM production-cutover, backup, and rollback runbook; FileVault and 292 GiB available control-node storage are validated, but the owner must approve or reject using that node as the temporary encrypted off-host backup destination.
-3. After separate owner approval, perform a non-production restore rehearsal into `crm_restore_test`; do not alter `crm_prod`, execute production cutover, or publish the CRM during rehearsal.
-4. Before rehearsal, document a repeatable permission-taxonomy mapping procedure and continue read-only capacity monitoring.
+2. Treat the validated `crm_prod` dataset as the current latest migrated copy; do not repeat the Windows migration or create `crm_restore_test` unless the owner reports new source data.
+3. Prepare protection for the current `crm_prod` data as a backup-only task. Any use of the encrypted macOS control node as an interim off-host destination still requires separate owner approval.
+4. Continue read-only host, VM, CRM, and MongoDB monitoring; public publication remains separately gated.
 5. Do not research, recommend, purchase, or implement BIOS, RAM, or other hardware updates until the owner explicitly reopens the subject.
 
 ## Supporting references

@@ -2,6 +2,15 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — Additional CRM remigration deferred
+
+### Owner confirmation
+
+- Confirmed that no new data was entered in the Windows CRM after the validated copy to `crm_prod`.
+- Accepted that no delta migration, Windows write freeze, or `crm_restore_test` rehearsal is currently required.
+- Retained the cutover runbook only as a contingency if Windows writes resume or the owner requests remigration.
+- Kept backup protection for the current `crm_prod` dataset and any future public publication as separate approval-gated work.
+
 ## 2026-07-19 — CRM cutover and rollback runbook prepared
 
 ### Prepared
