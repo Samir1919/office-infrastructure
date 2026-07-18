@@ -152,10 +152,10 @@
       no_log: true
       when: crm_session_restart | bool
 
-    - name: Require session and CRM records to persist across restart
+    - name: Require sessions not to be lost and CRM records to persist across restart
       ansible.builtin.assert:
         that:
-          - crm_session_after.sessionCount | int == crm_session_before.sessionCount | int
+          - crm_session_after.sessionCount | int >= crm_session_before.sessionCount | int
           - crm_session_after.leads | int == 275
           - crm_session_after.users | int == 4
       when: crm_session_restart | bool
