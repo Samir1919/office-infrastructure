@@ -110,6 +110,7 @@ Before Windows data migration only, the canary may reset its empty `crm_prod` da
 | Container health | `GET /healthz` returned `200` with `{"status":"ok"}` |
 | Database connection | CRM log confirmed MongoDB connection to `crm_prod` |
 | Container state | Docker health status `healthy` |
+| Initial admin | `Admin User` / `admin@asalagroupbd.com`, created with a Vault-managed password |
 | Source data import | Not started; Windows `realestate_crm` remains unchanged |
 
 ## Stop and rollback conditions

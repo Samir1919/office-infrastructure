@@ -2,6 +2,14 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — CRM canary admin bootstrap
+
+### Validated
+
+- Reset the empty `crm_prod` canary database before any Windows data migration.
+- Created the initial `Admin User` account for `admin@asalagroupbd.com` using a Vault-managed password also stored in the owner’s macOS Keychain.
+- Confirmed CRM health status and authenticated MongoDB connection after the bootstrap.
+
 ## 2026-07-18 — Constrained CRM pilot preparation
 
 ### Approved
