@@ -2,6 +2,20 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — CRM application recovery runbook
+
+### Prepared
+
+- Added a rebuild sequence for VM101 using the approved VM identity, common baseline, Docker automation, pinned CRM revision, and Vault-rendered environment.
+- Added an explicit prohibition on the historical `crm_reset_canary_database=true` option during recovery.
+- Added recovery validation, failure handling, internal-only boundaries, and separation between rebuildable `crm01` state and authoritative `crm_prod` data.
+
+### Validated
+
+- Confirmed GitHub `main` and the root-owned deployed checkout resolve to `ae9539ca575df9ffdafe047c49b20fff2473b858`.
+- Confirmed CRM playbook syntax, `.env.production` mode `0600` with root ownership, and a healthy running CRM container.
+- No VM rebuild, application deployment, database change, public publication, VM resize, or hardware change was performed.
+
 ## 2026-07-19 — CRM restore-test cleanup prepared
 
 ### Approved
