@@ -1,6 +1,6 @@
 # Proxmox Read-Only API Access
 
-**Status:** Owner-approved; provisioning and validation pending
+**Status:** Implemented and validated
 **Scope:** `pve01` read-only capacity and health evidence from the owner’s macOS control node
 
 ## Approved design
@@ -87,6 +87,15 @@ The command retrieves and prints only sanitized version, node, storage, and VM h
 - `/cluster/resources?type=vm` returns read-only VM status and resource data.
 - `pveum user token permissions infra-audit@pve codex` shows audit permission only.
 - Any write request remains unauthorized and is not used as a validation test.
+
+## Validation record — 2026-07-19
+
+- The owner verified the presented `pve01.local` certificate fingerprint from the local Proxmox console before the control node installed the pinned public certificate.
+- The privilege-separated `infra-audit@pve!codex` token was stored in macOS Keychain and authenticated successfully over verified TLS.
+- Effective permissions contained only `Datastore.Audit`, `Mapping.Audit`, `Pool.Audit`, `SDN.Audit`, `Sys.Audit`, `VM.Audit`, and `VM.GuestAgent.Audit`; no modify or administration privilege was present.
+- Proxmox VE `9.2.4`, node status, `local-lvm` status, and all VM resource states were retrieved successfully through read-only API endpoints.
+- `pve01` reported 8.22 GiB of 13.54 GiB usable memory in use, zero swap use, low CPU load, and 8.90% root-filesystem use.
+- `local-lvm` reported 48.02 GiB used and 745.77 GiB available out of 793.80 GiB total.
 
 ## Rotation and rollback
 

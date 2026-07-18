@@ -71,9 +71,24 @@ The following read-only observation was taken after the test migration and owner
 | Observed load | `0.00 0.00 0.00` | Low; peak sample `0.19 0.09 0.03` |
 | Service evidence | CRM container healthy; `/healthz` 200; 46.28 MiB container memory; 0 recent error-level matches | `mongod` active; 205 MB resident memory; 14 current connections; 275 leads and 4 users |
 
-No VM-level stop condition was observed. `pve01` host memory, swap, CPU load, and LVM-Thin free-space evidence is still pending: the current control node has no documented trusted SSH/API path to `pve01`, and host-key verification was not bypassed. An owner-confirmed console, API, or SSH access path is required before completing the host-capacity evidence.
+No VM-level stop condition was observed. The owner subsequently approved and provisioned a dedicated privilege-separated Proxmox API token with the built-in `PVEAuditor` role. Its effective permissions contain audit privileges only; provisioning and validation follow [Proxmox Read-Only API Access](Proxmox-Read-Only-API.md).
 
-The owner subsequently approved a dedicated privilege-separated Proxmox API token with the built-in `PVEAuditor` role. Provisioning and validation follow [Proxmox Read-Only API Access](Proxmox-Read-Only-API.md); host metrics remain pending until the certificate fingerprint is confirmed from the local console and the token is stored in macOS Keychain.
+### Proxmox host observation — 2026-07-19
+
+| Measure | Validated result |
+|---|---:|
+| Proxmox VE | `9.2.4` |
+| API-reported usable memory | 13.54 GiB |
+| Memory used / remaining | 8.22 GiB / 5.32 GiB (`60.72%` used) |
+| Swap used / total | 0 GiB / 8 GiB |
+| Load average | `0.03 0.04 0.06` |
+| Root filesystem | 8.36 GiB / 93.93 GiB (`8.90%` used) |
+| `local-lvm` | Active; 48.02 GiB used / 793.80 GiB total (`6.05%` used) |
+| `local-lvm` available | 745.77 GiB |
+| Running production VMs | `crm01`, `db01`, `web01`, `erp01`, `npm01` |
+| Stopped production VMs | `pbx01`, `mon01` |
+
+The host and migrated CRM pilot showed no current stop condition. This is a point-in-time result with two production VMs stopped; it does not demonstrate that all seven production VMs or the 26 GB target service profile can run safely on the current host. The 48 GB minimum and 64 GB preferred production planning recommendations remain unchanged.
 
 ## Options and trade-offs
 

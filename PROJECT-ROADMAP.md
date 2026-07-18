@@ -130,17 +130,17 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 - Docker Engine and Compose are installed and validated on `crm01`, `web01`, `erp01`, and `npm01`; each has a `docker-base` snapshot.
 - MongoDB Community `8.3.4` is installed and validated on `db01`. Authorization is enabled; `crm_app` has `readWrite` access to `crm_prod` only; UFW allows TCP `27017` only from `crm01` and SSH only from the office server LAN. A test migration from Windows `realestate_crm` to `crm_prod` imported 275 leads and 4 users; the Windows source remains unchanged.
 - The internal CRM canary is deployed on `crm01` from Git revision `ae9539ca575df9ffdafe047c49b20fff2473b858`, runs Node.js `v24.18.0`, returns healthy from `/healthz`, connects to `crm_prod`, and has passed authenticated internal login validation. Permission taxonomy mapping was applied to the migrated users, and owner browser validation found the CRM operating normally with no visible problem. It has no Nginx Proxy Manager host, public DNS, TLS certificate, or router forwarding.
-- Read-only migrated-workload validation found no VM-level stop condition: both VMs had about 1.4 GB available memory, zero active swap use, 22% root-disk use, and low CPU load. The CRM container was healthy with zero error/fatal/exception matches in its latest 200 log lines; MongoDB was active with 14 current connections and 205 MB resident memory. `pve01` host memory, swap, CPU, and LVM-Thin evidence remains pending because the control node has no documented trusted SSH/API access path to the Proxmox host.
+- Read-only migrated-workload validation found no current pilot stop condition. Both VMs had about 1.4 GB available memory, zero active swap use, 22% root-disk use, and low CPU load. The CRM container was healthy with zero error/fatal/exception matches in its latest 200 log lines; MongoDB was active with 14 current connections and 205 MB resident memory.
 - The CRM has no document-attachment subsystem, filesystem upload path, persistent Docker volume, or GridFS collections. CSV import is read in the browser and submitted as text; therefore no separate uploaded-document migration is applicable to the current revision.
-- The owner approved a least-privilege Proxmox inspection path: dedicated `infra-audit@pve!codex` API token, built-in `PVEAuditor` role, privilege separation, token secret in macOS Keychain, and owner-verified pinned TLS certificate. Provisioning and validation are pending; insecure TLS bypass and root SSH automation are not approved.
+- The least-privilege Proxmox inspection path is provisioned and validated: dedicated `infra-audit@pve!codex` API token, built-in `PVEAuditor` role, privilege separation, token secret in macOS Keychain, and owner-verified pinned TLS certificate. Effective permissions contain audit privileges only; insecure TLS bypass and root SSH automation are not approved.
+- The post-migration `pve01` observation reported Proxmox VE `9.2.4`, low CPU load, 8.22 GiB of 13.54 GiB API-reported usable memory in use, zero swap use, and 8.90% root-filesystem use. `local-lvm` was active with 48.02 GiB used and 745.77 GiB available. This point-in-time result had five production VMs running while `pbx01` and `mon01` were stopped; it does not approve the full target profile on the current 16 GB host.
 - The empty CRM canary database was reset once before migration and bootstrapped with the Vault-managed `Admin User` account for `admin@asalagroupbd.com`. The known repository fallback password was not used.
 
 ## Next approved implementation step
 
-1. Verify the `pve01` TLS certificate fingerprint from the local console, then provision and validate the approved read-only `PVEAuditor` API token following `docs/Proxmox-Read-Only-API.md`.
-2. Record `pve01` memory, swap, CPU load, and LVM-Thin free space through the validated API path.
-3. Prepare a documented capacity and production-cutover decision for separate owner approval after the host evidence is complete.
-4. Do not perform production cutover or public publication until that approval is recorded.
+1. Confirm `pve01` motherboard RAM-slot count, supported DIMM capacity, installed memory layout, and whether the 48 GB minimum or 64 GB preferred planning target is physically achievable.
+2. Prepare the documented capacity and production-cutover decision for separate owner approval.
+3. Do not resize VMs, perform production cutover, or publish the CRM until those approvals are recorded.
 
 ## Supporting references
 

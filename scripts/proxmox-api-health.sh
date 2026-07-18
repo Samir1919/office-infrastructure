@@ -34,6 +34,13 @@ pve_api_get() {
 echo 'Proxmox version'
 pve_api_get '/version' | /usr/bin/jq '.data | {version, release, repoid}'
 
+echo 'API token permissions'
+pve_api_get '/access/permissions' | /usr/bin/jq '
+  .data
+  | to_entries
+  | map({path: .key, privileges: (.value | keys | sort)})
+  | sort_by(.path)'
+
 echo 'pve01 node health'
 pve_api_get "/nodes/${PVE_NODE}/status" | /usr/bin/jq --arg node "$PVE_NODE" '
   .data | {

@@ -9,11 +9,19 @@ This is the durable history of completed and validated work. Planned work belong
 - Dedicated `infra-audit@pve` user and privilege-separated `codex` API token with the built-in `PVEAuditor` role only.
 - Token-secret storage in the owner control node's macOS Keychain and owner-verified TLS certificate pinning; insecure TLS bypass and root SSH automation remain prohibited.
 
-### Prepared
+### Implemented
 
 - Added the provisioning, validation, rotation, and rollback runbook.
 - Added certificate-fingerprint verification, Keychain token retrieval, and sanitized read-only health-query scripts.
-- Provisioning and live API validation remain pending; no Proxmox user, token, permission, VM, storage, or service change was applied from the repository.
+- Owner-verified and pinned the `pve01.local` TLS certificate, created the privilege-separated audit identity, and stored the token secret in macOS Keychain.
+
+### Validated
+
+- Confirmed the API token exposes audit privileges only and no modify or administration privilege.
+- Retrieved Proxmox VE `9.2.4`, node health, `local-lvm` capacity, and VM resource status over verified TLS.
+- Recorded 8.22 GiB of 13.54 GiB API-reported usable host memory in use, zero swap use, low CPU load, and 8.90% root-filesystem use.
+- Confirmed `local-lvm` was active with 48.02 GiB used and 745.77 GiB available out of 793.80 GiB total.
+- No VM, storage, network, or application configuration was changed during API validation.
 
 ## 2026-07-19 — CRM test data migration validation
 
@@ -30,7 +38,7 @@ This is the durable history of completed and validated work. Planned work belong
 - Confirmed the CRM container was healthy, `/healthz` returned `200`, container memory use was 46.28 MiB, and its latest 200 application log lines contained no `error`, `fatal`, or `exception` match.
 - Confirmed `mongod` was active on MongoDB `8.3.4`, with 14 current connections and 205 MB resident memory; 275 leads and 4 users were reconfirmed.
 - Confirmed the current CRM revision has no document-attachment backend, persistent upload volume, or GridFS collections. CSV import is browser-read text and requires no separate uploaded-file migration.
-- Left `pve01` host/LVM-Thin evidence pending because no owner-confirmed trusted SSH/API path is configured on the control node; host-key verification was not bypassed.
+- Completed the previously pending `pve01` host/LVM-Thin evidence through the separately approved, certificate-verified, audit-only API path.
 - No production cutover, public DNS, Nginx Proxy Manager publication, TLS certificate, or router forwarding was performed.
 
 ## 2026-07-19 — Application container timezone standard
