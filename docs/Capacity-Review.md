@@ -58,6 +58,21 @@ The owner has approved a preparation and canary exception while the current hard
 
 If sustained memory pressure, swap activity, disk pressure, or unacceptable CRM/MongoDB response time appears, stop the pilot and defer further deployment until hardware is upgraded. The recommended 48 GB minimum and 64 GB preferred planning targets remain unchanged.
 
+### Migrated canary observation — 2026-07-19
+
+The following read-only observation was taken after the test migration and owner browser validation. It is a point-in-time pilot result, not approval for production sizing or cutover.
+
+| Measure | `crm01` | `db01` |
+|---|---:|---:|
+| vCPU / guest memory | 2 / 1,900 MB | 2 / 1,900 MB |
+| Available memory | 1,413 MB | 1,414 MB |
+| Swap used | 0 MB | 0 MB |
+| Root filesystem used | 22% | 22% |
+| Observed load | `0.00 0.00 0.00` | Low; peak sample `0.19 0.09 0.03` |
+| Service evidence | CRM container healthy; `/healthz` 200; 46.28 MiB container memory; 0 recent error-level matches | `mongod` active; 205 MB resident memory; 14 current connections; 275 leads and 4 users |
+
+No VM-level stop condition was observed. `pve01` host memory, swap, CPU load, and LVM-Thin free-space evidence is still pending: the current control node has no documented trusted SSH/API path to `pve01`, and host-key verification was not bypassed. An owner-confirmed console, API, or SSH access path is required before completing the host-capacity evidence.
+
 ## Options and trade-offs
 
 | Option | Benefits | Risks / limitations |

@@ -2,6 +2,24 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — CRM test data migration validation
+
+### Implemented
+
+- Copied the Windows MongoDB `realestate_crm` data into `db01` database `crm_prod` as a test migration; the Windows source remained unchanged.
+- Applied the CRM permission taxonomy mapping to the migrated users.
+
+### Validated
+
+- Confirmed 275 leads and 4 users in the migrated CRM data.
+- The owner refreshed the browser and confirmed that the CRM operated normally with no visible problem.
+- Recorded point-in-time migrated-workload evidence: both `crm01` and `db01` had about 1.4 GB available memory, zero active swap use, 22% root-disk use, and low CPU load.
+- Confirmed the CRM container was healthy, `/healthz` returned `200`, container memory use was 46.28 MiB, and its latest 200 application log lines contained no `error`, `fatal`, or `exception` match.
+- Confirmed `mongod` was active on MongoDB `8.3.4`, with 14 current connections and 205 MB resident memory; 275 leads and 4 users were reconfirmed.
+- Confirmed the current CRM revision has no document-attachment backend, persistent upload volume, or GridFS collections. CSV import is browser-read text and requires no separate uploaded-file migration.
+- Left `pve01` host/LVM-Thin evidence pending because no owner-confirmed trusted SSH/API path is configured on the control node; host-key verification was not bypassed.
+- No production cutover, public DNS, Nginx Proxy Manager publication, TLS certificate, or router forwarding was performed.
+
 ## 2026-07-19 — Application container timezone standard
 
 ### Implemented

@@ -8,8 +8,8 @@
 |---|---|
 | Project | Office Infrastructure Project |
 | Status | Active |
-| Last consolidated | 2026-07-18 |
-| Current phase | Constrained CRM and MongoDB pilot preparation |
+| Last consolidated | 2026-07-19 |
+| Current phase | Constrained CRM and MongoDB pilot validation |
 | Maintainer | Project Owner |
 
 ## Objective and architecture principles
@@ -114,7 +114,7 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 
 - The pilot scope is limited to `db01` MongoDB prerequisite work and `crm01` CRM canary preparation.
 - Both VMs retain their current baseline allocation of 2 vCPU / 2 GB / 32 GB; no VM resize is approved.
-- `db01` will use MongoDB `8.3.4`, the approved current stable patch release. The new CRM production database is `crm_prod`; the confirmed Windows source is MongoDB `7.0` database `realestate_crm`. Its document-upload storage method must be confirmed before migration.
+- `db01` uses MongoDB `8.3.4`, the approved current stable patch release. The new CRM production database is `crm_prod`; the confirmed Windows source is MongoDB `7.0` database `realestate_crm`. Its document-upload storage method must be confirmed before production cutover.
 - `crm01` will use the latest production-supported Node.js 24.x LTS patch release; its package manager, start command, and required environment variables must be documented before application preparation.
 - No public DNS, Nginx Proxy Manager publication, router forwarding, ERP, FreePBX, or additional application deployment is included in this pilot.
 - Database hardening, backup design, production cutover, and the complete Phase 6 scope remain pending.
@@ -128,16 +128,17 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 - The common role passed syntax validation, was applied and validated on all seven production VMs, and each VM has a `common-base` snapshot.
 - The macOS Keychain provides the local Vault password; the encrypted Vault file is versioned only in the private repository.
 - Docker Engine and Compose are installed and validated on `crm01`, `web01`, `erp01`, and `npm01`; each has a `docker-base` snapshot.
-- MongoDB Community `8.3.4` is installed and validated on `db01`. Authorization is enabled; `crm_app` has `readWrite` access to `crm_prod` only; UFW allows TCP `27017` only from `crm01` and SSH only from the office server LAN. No data migration has been applied.
-- The internal CRM canary is deployed on `crm01` from Git revision `ae9539ca575df9ffdafe047c49b20fff2473b858`, runs Node.js `v24.18.0`, returns healthy from `/healthz`, connects to `crm_prod`, and has passed authenticated internal login validation. It has no Nginx Proxy Manager host, public DNS, TLS certificate, or router forwarding. The Windows source data has not been imported.
+- MongoDB Community `8.3.4` is installed and validated on `db01`. Authorization is enabled; `crm_app` has `readWrite` access to `crm_prod` only; UFW allows TCP `27017` only from `crm01` and SSH only from the office server LAN. A test migration from Windows `realestate_crm` to `crm_prod` imported 275 leads and 4 users; the Windows source remains unchanged.
+- The internal CRM canary is deployed on `crm01` from Git revision `ae9539ca575df9ffdafe047c49b20fff2473b858`, runs Node.js `v24.18.0`, returns healthy from `/healthz`, connects to `crm_prod`, and has passed authenticated internal login validation. Permission taxonomy mapping was applied to the migrated users, and owner browser validation found the CRM operating normally with no visible problem. It has no Nginx Proxy Manager host, public DNS, TLS certificate, or router forwarding.
+- Read-only migrated-workload validation found no VM-level stop condition: both VMs had about 1.4 GB available memory, zero active swap use, 22% root-disk use, and low CPU load. The CRM container was healthy with zero error/fatal/exception matches in its latest 200 log lines; MongoDB was active with 14 current connections and 205 MB resident memory. `pve01` host memory, swap, CPU, and LVM-Thin evidence remains pending because the control node has no documented trusted SSH/API access path to the Proxmox host.
+- The CRM has no document-attachment subsystem, filesystem upload path, persistent Docker volume, or GridFS collections. CSV import is read in the browser and submitted as text; therefore no separate uploaded-document migration is applicable to the current revision.
 - The empty CRM canary database was reset once before migration and bootstrapped with the Vault-managed `Admin User` account for `admin@asalagroupbd.com`. The known repository fallback password was not used.
 
 ## Next approved implementation step
 
-1. Take the `crm-installed` Proxmox snapshot after the validated canary deployment.
-2. Run internal CRM login and representative read/write testing against the empty canary database.
-3. Run a test `realestate_crm` → `crm_prod` MongoDB migration and validate data counts and application behaviour.
-4. Complete production cutover only after a separate owner-approved capacity and cutover decision.
+1. Use an owner-confirmed trusted Proxmox console, API, or SSH path to record `pve01` memory, swap, CPU load, and LVM-Thin free space.
+2. Prepare a documented capacity and production-cutover decision for separate owner approval after the host evidence is complete.
+3. Do not perform production cutover or public publication until that approval is recorded.
 
 ## Supporting references
 

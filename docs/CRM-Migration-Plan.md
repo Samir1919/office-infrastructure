@@ -1,6 +1,6 @@
 # CRM Pilot Migration Plan
 
-**Status:** Approved for planning and canary preparation only
+**Status:** Approved for constrained canary validation only
 **Scope:** Existing Node.js CRM on a local Windows PC, `crm01`, and `db01`
 **Out of scope:** Public access, Nginx Proxy Manager publication, calling integration, full database hardening/backups, and production cutover
 
@@ -114,7 +114,16 @@ Before Windows data migration only, the canary may reset its empty `crm_prod` da
 | Container state | Docker health status `healthy` |
 | Initial admin | `Admin User` / `admin@asalagroupbd.com`, created with a Vault-managed password |
 | Internal login | Validated: CSRF-protected login redirected to the authenticated dashboard over internal HTTP |
-| Source data import | Not started; Windows `realestate_crm` remains unchanged |
+| Test source data import | Completed: Windows `realestate_crm` copied to `crm_prod`; 275 leads and 4 users validated; Windows source remains unchanged |
+| Permission taxonomy | Mapping applied to migrated users |
+| Owner browser validation | CRM operated normally after refresh; no visible problem reported |
+| CRM VM resources | 2 vCPU; 1,413 MB available of 1,900 MB; 0 MB swap used; root filesystem 22% used; load `0.00 0.00 0.00` |
+| CRM container resources | `0.14%` CPU and `46.28 MiB` memory during the observation |
+| CRM recent logs | Zero `error`, `fatal`, or `exception` matches in the latest 200 application log lines |
+| Database VM resources | 2 vCPU; 1,414 MB available of 1,900 MB; 0 MB swap used; root filesystem 22% used; low load during both samples |
+| MongoDB health | Service active; MongoDB `8.3.4`; 14 current connections; 205 MB resident memory; 275 leads and 4 users reconfirmed |
+| Upload storage | No attachment/upload backend, persistent Docker volume, or GridFS collections; CSV import is submitted as browser-read text, so no separate document copy applies |
+| Proxmox host evidence | Pending: no owner-confirmed trusted Proxmox SSH/API path is configured on the control node |
 
 ## Stop and rollback conditions
 
@@ -122,4 +131,4 @@ Stop the pilot if the host enters swap pressure, VM memory is persistently exhau
 
 ## Next implementation decision
 
-MongoDB 8.3.4 is installed and validated on `db01`. The Vault-managed `crm_app` user has `readWrite` access to `crm_prod` only, and authenticated TCP `27017` access is restricted by UFW to `crm01` only. The Node.js 24 internal canary is validated on `crm01`. No Windows data migration or public publication is included. The next step is internal application testing, followed by a separately approved test data migration.
+MongoDB 8.3.4 is installed and validated on `db01`. The Vault-managed `crm_app` user has `readWrite` access to `crm_prod` only, and authenticated TCP `27017` access is restricted by UFW to `crm01` only. The Node.js 24 internal canary is validated on `crm01`. A test copy from Windows `realestate_crm` to `crm_prod` imported 275 leads and 4 users; permission taxonomy mapping was applied and owner browser validation found no visible application problem. VM, container, MongoDB, and upload-storage validation found no pilot stop condition. The Windows source remains unchanged and no public publication is included. Before any production cutover, complete the pending `pve01` host/LVM-Thin evidence through an owner-confirmed trusted access path and obtain separate owner approval for the documented capacity and cutover decision.
