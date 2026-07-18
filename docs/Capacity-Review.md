@@ -73,6 +73,8 @@ The following read-only observation was taken after the test migration and owner
 
 No VM-level stop condition was observed. `pve01` host memory, swap, CPU load, and LVM-Thin free-space evidence is still pending: the current control node has no documented trusted SSH/API path to `pve01`, and host-key verification was not bypassed. An owner-confirmed console, API, or SSH access path is required before completing the host-capacity evidence.
 
+The owner subsequently approved a dedicated privilege-separated Proxmox API token with the built-in `PVEAuditor` role. Provisioning and validation follow [Proxmox Read-Only API Access](Proxmox-Read-Only-API.md); host metrics remain pending until the certificate fingerprint is confirmed from the local console and the token is stored in macOS Keychain.
+
 ## Options and trade-offs
 
 | Option | Benefits | Risks / limitations |

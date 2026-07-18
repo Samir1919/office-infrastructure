@@ -2,6 +2,19 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — Proxmox read-only API access design
+
+### Approved
+
+- Dedicated `infra-audit@pve` user and privilege-separated `codex` API token with the built-in `PVEAuditor` role only.
+- Token-secret storage in the owner control node's macOS Keychain and owner-verified TLS certificate pinning; insecure TLS bypass and root SSH automation remain prohibited.
+
+### Prepared
+
+- Added the provisioning, validation, rotation, and rollback runbook.
+- Added certificate-fingerprint verification, Keychain token retrieval, and sanitized read-only health-query scripts.
+- Provisioning and live API validation remain pending; no Proxmox user, token, permission, VM, storage, or service change was applied from the repository.
+
 ## 2026-07-19 — CRM test data migration validation
 
 ### Implemented
