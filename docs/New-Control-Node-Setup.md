@@ -24,6 +24,48 @@ For a Windows PC, use WSL2 with a supported Linux distribution for Ansible. The 
 3. Obtain the Vault password through the approved password manager or another secure owner-approved method. Do not send it with the repository or the encrypted Vault file.
 4. Obtain approval before changing VM access, applying playbooks, or removing the old control node's key.
 
+## Vault recovery — read before setting up a new Mac
+
+Cloning or pulling the private GitHub repository provides the whole-file-encrypted `vault.yml` and the inline `!vault` values in `mongodb-secrets.yml`, but it does **not** provide their decryption password. The project currently uses the same single Vault password for both encryption formats loaded by the infrastructure playbooks. A new control node must recover that existing password; it must not invent a replacement.
+
+Approved recovery order:
+
+1. Retrieve the existing Vault password from the old trusted Mac's Keychain while that Mac remains available.
+2. If the old Mac is unavailable, retrieve the same password from the owner's approved secondary password-manager entry. The recommended Google Password Manager label is website `https://office-infrastructure.invalid` with username `ansible-vault-recovery`; verify that it was saved to the Google Account rather than device-only storage.
+3. If configured later, use the approved encrypted offline recovery copy.
+4. If none of these sources is available, stop. Do not re-encrypt, overwrite, edit, or replace the existing Vault files, because doing so can permanently separate automation from its managed credentials.
+
+The current macOS command stores the working item in the local login Keychain. Signing in with an Apple Account alone does not guarantee that this command-created item will appear on a new Mac. Google Password Manager is a secondary encrypted recovery copy, not a different password and not the primary runtime integration.
+
+Never put the Vault password in GitHub, a repository file, `.env`, shell command argument, email, chat, unencrypted note, screenshot, or CSV export. Google/Chrome password CSV exports are plaintext and are prohibited for this recovery workflow.
+
+### Recreate the Keychain item on the new Mac
+
+After securely recovering the existing password, run this command and type the password only into the protected macOS prompt:
+
+```bash
+cd ansible
+security add-generic-password -a "$USER" -s "office-infrastructure-ansible-vault" -U -w
+```
+
+Confirm that the item exists without printing its secret:
+
+```bash
+security find-generic-password -s "office-infrastructure-ansible-vault" >/dev/null
+```
+
+Then verify that the same recovered password decrypts the whole-file Vault and loads the inline Vault values through inventory. Successful commands produce no secret output because it is discarded:
+
+```bash
+ANSIBLE_VAULT_PASSWORD_FILE=../scripts/ansible-vault-keychain.sh \
+ansible-vault view group_vars/all/vault.yml >/dev/null
+
+ANSIBLE_VAULT_PASSWORD_FILE=../scripts/ansible-vault-keychain.sh \
+ansible-inventory --host db01 >/dev/null
+```
+
+Only after both checks succeed should the new control node run inventory, ping, check-mode, or production workflows.
+
 ## macOS setup
 
 ### 1. Install prerequisites and clone the repository
@@ -58,7 +100,7 @@ Verify the VM host-key fingerprints against the trusted current control node or 
 
 ### 4. Add the Vault password to macOS Keychain
 
-From the cloned repository's `ansible/` directory, run the following once. Keep `-w` as the final option so macOS asks for the password securely:
+Recover the existing password through the preceding Vault recovery procedure. From the cloned repository's `ansible/` directory, run the following once. Keep `-w` as the final option so macOS asks for the password securely:
 
 ```bash
 cd ansible

@@ -2,6 +2,15 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — Vault recovery installation guidance
+
+### Added
+
+- Added a prominent new-Mac recovery section explaining that GitHub contains encrypted Vault files but not the single decryption password.
+- Documented recovery from the old Mac Keychain, an approved secondary Google Password Manager entry, or a future encrypted offline copy.
+- Added safe Keychain recreation plus no-output checks for the whole-file Vault and inline `!vault` values.
+- Added stop conditions prohibiting a new password, Vault overwrite, plaintext notes, chat/email storage, screenshots, or CSV export when recovery is unavailable.
+
 ## 2026-07-19 — CRM HTTPS publication architecture review
 
 ### Reviewed

@@ -28,6 +28,8 @@ The present check-mode run requires an Ansible Vault-supplied sudo credential fo
 
 The local Ansible configuration uses the versioned, password-free helper `scripts/ansible-vault-keychain.sh`. It retrieves the Vault password from the macOS Keychain. The encrypted `ansible/group_vars/all/vault.yml` file is versioned only in this private repository; never commit a plaintext equivalent or the Vault password.
 
+For a replacement Mac, follow the [Vault recovery section of the New Control Node Setup](New-Control-Node-Setup.md#vault-recovery--read-before-setting-up-a-new-mac). GitHub supplies encrypted files only; recover the same existing Vault password from an approved source and recreate the local Keychain item before running Ansible.
+
 Add or update the Keychain item once. Keep `-w` as the final option so macOS prompts securely:
 
 ```bash
