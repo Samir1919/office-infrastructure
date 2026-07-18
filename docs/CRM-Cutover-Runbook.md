@@ -25,6 +25,10 @@ The target design sends MongoDB backups to a future independent TrueNAS/backup s
 
 Before using the interim option, verify that FileVault or an equivalent encrypted destination is active, the owner account alone can read the backup directory, and available space is at least three times the final compressed archive size. Record the destination without recording secrets.
 
+### Control-node storage validation — 2026-07-19
+
+The owner macOS control node reports FileVault enabled. Its data volume has 292 GiB available of 460 GiB. Encryption and gross free-space prerequisites therefore pass; the final archive size, exact owner-only destination permissions, checksum workflow, and owner approval must still be validated before creating any CRM backup artifact.
+
 ## Approval gates
 
 Separate owner approval is required for each gate:
@@ -134,4 +138,4 @@ After users have written to the new CRM, immediately returning to Windows can lo
 
 ## Prepared status
 
-The procedure, gates, validation evidence, and rollback boundaries are documented. Execution remains blocked on owner selection of the interim backup option, a repeatable permission-taxonomy mapping procedure, and separate rehearsal approval.
+The procedure, gates, validation evidence, and rollback boundaries are documented. FileVault and 292 GiB of available control-node storage are validated. Execution remains blocked on owner selection of the interim backup option, validation of the exact destination permissions and final archive size, a repeatable permission-taxonomy mapping procedure, and separate rehearsal approval.

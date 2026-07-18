@@ -8,6 +8,7 @@ This is the durable history of completed and validated work. Planned work belong
 
 - Added explicit approval gates for restore rehearsal, production cutover, user release, and future public publication.
 - Compared waiting for independent backup storage with a temporary encrypted off-host copy on the owner's macOS control node; same-host-only backup is prohibited.
+- Validated that the macOS control node has FileVault enabled and 292 GiB available on its 460 GiB data volume; exact destination permissions, archive size, and owner approval remain pending.
 - Documented preflight thresholds, checksum validation, a temporary `crm_restore_test` rehearsal, final write freeze, target rollback archive, owner-only validation, and data-divergence-safe rollback.
 - Identified the repeatable permission-taxonomy mapping procedure and owner approval of the interim backup destination as rehearsal prerequisites.
 - No database restore, source write freeze, production cutover, user release, public publication, VM resize, or hardware change was performed.

@@ -141,7 +141,7 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 ## Next approved implementation step
 
 1. Continue CRM preparation on the current 16 GB host and retain the existing 2 vCPU / 2 GB / 32 GB allocations.
-2. Review the prepared CRM production-cutover, backup, and rollback runbook; approve or reject the temporary encrypted off-host backup option on the owner's macOS control node.
+2. Review the prepared CRM production-cutover, backup, and rollback runbook; FileVault and 292 GiB available control-node storage are validated, but the owner must approve or reject using that node as the temporary encrypted off-host backup destination.
 3. After separate owner approval, perform a non-production restore rehearsal into `crm_restore_test`; do not alter `crm_prod`, execute production cutover, or publish the CRM during rehearsal.
 4. Before rehearsal, document a repeatable permission-taxonomy mapping procedure and continue read-only capacity monitoring.
 5. Do not research, recommend, purchase, or implement BIOS, RAM, or other hardware updates until the owner explicitly reopens the subject.
