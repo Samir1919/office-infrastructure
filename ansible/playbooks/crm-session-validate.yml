@@ -10,7 +10,7 @@
     - ../roles/crm/defaults/main.yml
 
   vars:
-    crm_session_expected_revision: e7a9ddbf8e8e3b12ba187906484e813150a3490f
+    crm_session_expected_revision: 1a8301bca2b4b57bd40a4847b0f83aaa40c6b341
     crm_session_restart: false
     crm_session_require_document: false
 
@@ -37,11 +37,11 @@
       register: crm_session_deployed_revision
       changed_when: false
 
-    - name: Require the approved session-store revision
+    - name: Require the approved CRM canary revision
       ansible.builtin.assert:
         that:
           - crm_session_deployed_revision.stdout | trim == crm_session_expected_revision
-        fail_msg: CRM canary is not running the approved session-store revision.
+        fail_msg: CRM canary is not running the approved revision.
 
     - name: Check CRM health before session validation
       ansible.builtin.uri:

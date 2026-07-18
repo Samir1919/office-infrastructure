@@ -90,12 +90,13 @@ Take the approved `db-installed` Proxmox snapshot after successful validation. T
 
 The CRM canary is restricted to `crm01`. It checks out the owner-approved GitHub commit, builds the Node.js 24 LTS Docker image, creates a mode-`0600` `.env.production` file from Vault values, and validates `/healthz` plus the MongoDB connection. It is internal-only and does not create a public Nginx Proxy Manager host.
 
-The current session-store canary target is revision
-`e7a9ddbf8e8e3b12ba187906484e813150a3490f`. It stores encrypted sessions in
-`crm_prod.sessions` for 12 hours and creates a TTL index. This deployment does
-not reset or remigrate `crm_prod`; never pass `crm_reset_canary_database=true`.
-Rollback is the prior revision
-`ae9539ca575df9ffdafe047c49b20fff2473b858` followed by the same playbook.
+The current canary target is revision
+`1a8301bca2b4b57bd40a4847b0f83aaa40c6b341`. It retains the encrypted 12-hour
+session store in `crm_prod.sessions` and adds reliable Enter-key submission to
+the login form. This deployment does not reset or remigrate `crm_prod`; never
+pass `crm_reset_canary_database=true`. Rollback is the previously validated
+session-store revision `e7a9ddbf8e8e3b12ba187906484e813150a3490f`
+followed by the same playbook.
 
 The canary is currently accessed by internal HTTP, so it explicitly sets `SESSION_COOKIE_SECURE=false`; otherwise a browser cannot retain the login session cookie over HTTP. This override is canary-only. The CRM source defaults to secure cookies in production, and a future Nginx Proxy Manager HTTPS deployment must remove the override or set `SESSION_COOKIE_SECURE=true` before publication.
 
@@ -109,7 +110,7 @@ ansible-playbook playbooks/crm.yml --check --limit crm01
 ansible-playbook playbooks/crm.yml --limit crm01
 ```
 
-After the session-store deployment:
+After the CRM canary deployment:
 
 1. Confirm `/healthz`, the pinned Git revision, container health, and clean logs.
 2. Sign in once through the internal HTTP canary and confirm a document exists
@@ -121,6 +122,8 @@ After the session-store deployment:
    both VMs have zero active swap use.
 5. Roll back immediately for login/CSRF failure, missing TTL index, session loss,
    application errors, database-count drift, or resource pressure.
+6. On the internal login page, enter credentials and press Enter from a
+   credential field. The form must submit without requiring a mouse click.
 
 Run the non-restart metadata validation immediately after deployment:
 

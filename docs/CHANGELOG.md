@@ -2,6 +2,14 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — CRM login Enter-key canary
+
+### Approved and prepared
+
+- Merged CRM pull request #4 after both required CI checks passed and pinned its merge revision `1a8301bca2b4b57bd40a4847b0f83aaa40c6b341` for `crm01`.
+- Documented rollback to the currently validated persistent-session revision `e7a9ddbf8e8e3b12ba187906484e813150a3490f`.
+- Kept database reset disabled and retained the internal-only network boundary, MongoDB-backed session store, protected record-count gates, and browser validation requirement.
+
 ## 2026-07-19 — CRM persistent session canary
 
 ### Approved and prepared
