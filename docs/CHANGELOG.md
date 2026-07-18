@@ -44,6 +44,10 @@ This is the durable history of completed and validated work. Planned work belong
 - Renamed the common role task file from `main.ymal` to `main.yml`.
 - Stopped tracking the generated Ansible collection directory; dependencies are reproduced through `requirements.yml`.
 
+### Prepared
+
+- Added a Proxmox host-capacity review with decision options and a recommended 48 GB minimum planning target; owner approval remains required before any resource change.
+
 ### Next step
 
 - Complete the documented Proxmox host-capacity review before Phase 5 application deployment.

@@ -126,6 +126,6 @@ The current 2 GB / 32 GB allocation is a baseline, not final service sizing. Bef
 
 - [VM inventory](docs/VM-Inventory.md)
 - [Network design](docs/Network-Design.md)
-- [Storage](docs/Storage-Design.md), [security](docs/Security-Baseline.md), and [backup](docs/Backup-Strategy.md)
+- [Capacity review](docs/Capacity-Review.md), [Storage](docs/Storage-Design.md), [security](docs/Security-Baseline.md), and [backup](docs/Backup-Strategy.md)
 - [Monitoring](docs/Monitoring-Strategy.md), [deployment runbook](docs/Deployment-Runbook.md), and [disaster recovery](docs/Disaster-Recovery.md)
 - [Architecture decisions](docs/ADR/) and [change history](docs/CHANGELOG.md)
