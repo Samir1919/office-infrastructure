@@ -60,6 +60,7 @@ Production VMs are full clones of VM900, use Ubuntu Server 24.04 LTS, have stati
 6. Git is change history; GitHub is off-site backup and should remain private except for intentional reviews.
 7. Production workflow is documentation → review/approval → implementation → validation → snapshot where applicable → changelog.
 8. Never commit plaintext secrets. Ansible Vault-encrypted secret files may be versioned only in the private repository; Vault passwords remain outside Git in each control node’s macOS Keychain or approved password manager.
+9. Central databases on `db01` use per-application users, per-application firewall rules, and `<application>_<environment>` database names. See the database access policy before onboarding any database client.
 
 ## Delivery order
 
@@ -140,6 +141,6 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 
 - [VM inventory](docs/VM-Inventory.md)
 - [Network design](docs/Network-Design.md)
-- [Capacity review](docs/Capacity-Review.md), [CRM pilot migration plan](docs/CRM-Migration-Plan.md), [Storage](docs/Storage-Design.md), [security](docs/Security-Baseline.md), and [backup](docs/Backup-Strategy.md)
+- [Capacity review](docs/Capacity-Review.md), [CRM pilot migration plan](docs/CRM-Migration-Plan.md), [database access policy](docs/Database-Access-Policy.md), [Storage](docs/Storage-Design.md), [security](docs/Security-Baseline.md), and [backup](docs/Backup-Strategy.md)
 - [Monitoring](docs/Monitoring-Strategy.md), [deployment runbook](docs/Deployment-Runbook.md), and [disaster recovery](docs/Disaster-Recovery.md)
 - [Architecture decisions](docs/ADR/) and [change history](docs/CHANGELOG.md)

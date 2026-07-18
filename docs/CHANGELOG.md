@@ -15,6 +15,7 @@ This is the durable history of completed and validated work. Planned work belong
 - Capacity monitoring and cutover boundaries that keep full Phase 5 and Phase 6 deployment pending.
 - MongoDB `8.3.4` as the CRM pilot target and `crm_prod` as the new production database name.
 - Confirmed Windows source mapping: MongoDB 7.0 database `realestate_crm` to `db01` MongoDB 8.3.4 database `crm_prod`.
+- Approved a permanent least-privilege database-access standard, including per-application users, firewall rules, naming, and backup artifacts.
 
 ### Validated
 
