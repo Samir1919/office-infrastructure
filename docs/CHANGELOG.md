@@ -14,7 +14,8 @@ This is the durable history of completed and validated work. Planned work belong
 
 - Deployed the pinned revision to the internal-only `crm01` canary; the reset and remigration tasks remained disabled and were skipped.
 - Confirmed `/healthz`, MongoDB connectivity, exact revision `1a8301bca2b4b57bd40a4847b0f83aaa40c6b341`, the session collection and TTL index, 80 current session documents, 275 leads, and 4 users.
-- Retained the existing NPM/DNS/TLS/router, database privileges, VM resources, and hardware state. Owner browser acceptance using Enter remains pending.
+- The owner entered credentials, pressed Enter without clicking the Login button, and confirmed the authenticated login succeeded.
+- Retained the existing NPM/DNS/TLS/router, database privileges, VM resources, and hardware state.
 
 ## 2026-07-19 — CRM persistent session canary
 
