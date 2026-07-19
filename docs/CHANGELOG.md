@@ -129,6 +129,18 @@ This is the durable history of completed and validated work. Planned work belong
 - Removed the temporary validation file and reconfirmed NPM remains undeployed.
 - No administrator identity, password, TOTP secret, backup code, session, NPM
   service, image, container, proxy host, DNS, TLS, or router rule was created.
+
+### NPM internal service deployed
+
+- Deployed pinned NPM `2.15.1` with SQLite and explicit IPv4 bindings on
+  `192.168.10.106:80`, `:81`, and `:443`; no proxy host, DNS, TLS certificate,
+  or router forwarding was created.
+- Owner completed the LAN-only setup wizard for the approved administrator
+  email. API returned `setup:true`; logs contained no initial plaintext password.
+- Initial restart exposed an external CDN IP-range fetch delay that temporarily
+  returned `502`. Prepared the official `IP_RANGES_FETCH_ENABLED=false` setting
+  for the internal stage; CDN ranges are not needed for the current direct LAN
+  path.
 - Recorded the owner-approved NPM administrator email
   `ryansamir90@gmail.com`; no password, TOTP secret, QR content, session token,
   or backup code was received or stored.

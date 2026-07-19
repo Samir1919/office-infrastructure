@@ -261,9 +261,11 @@ mix application deployment into the existing generic Docker role. The role must:
 2. assert that TCP `80`, `81`, and `443` do not conflict before first deployment;
 3. create only the approved persistent paths and a pinned Compose definition;
 4. include timezone `Asia/Dhaka`;
-5. avoid plaintext secrets and avoid creating any proxy host automatically;
-6. support `--syntax-check` and a meaningful `--check --limit npm01` run;
-7. start containers only during a separately approved apply.
+5. disable external CDN IP-range fetching during the internal stage so an
+   unreachable upstream does not block backend startup;
+6. avoid plaintext secrets and avoid creating any proxy host automatically;
+7. support `--syntax-check` and a meaningful `--check --limit npm01` run;
+8. start containers only during a separately approved apply.
 
 ## Administrator identity and first-login workflow
 

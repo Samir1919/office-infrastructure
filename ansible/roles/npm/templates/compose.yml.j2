@@ -11,6 +11,7 @@ services:
       # the automated initial password. The owner uses the LAN-only setup wizard.
       TZ: "{{ npm_timezone }}"
       DB_SQLITE_FILE: /data/database.sqlite
+      IP_RANGES_FETCH_ENABLED: "false"
     ports:
       - "{{ npm_proxy_bind_address }}:80:80"
       - "{{ npm_proxy_bind_address }}:443:443"
