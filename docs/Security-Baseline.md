@@ -11,6 +11,7 @@
 - Approved database access policy: per-application database users, per-application firewall rules, and no public database exposure. See [Database Access Policy](Database-Access-Policy.md).
 - `db01` UFW is active with default-deny incoming traffic; SSH is restricted to `192.168.10.0/24` and MongoDB TCP `27017` is restricted to `crm01` (`192.168.10.101`).
 - Proxmox automated inspection uses the privilege-separated `infra-audit@pve!codex` API token with the built-in `PVEAuditor` role only. Its effective permissions are audit-only, its secret remains in macOS Keychain, and HTTPS uses an owner-verified pinned `pve01.local` certificate. Insecure TLS bypass and automated root SSH access are prohibited.
+- The internal CRM canary uses persistent encrypted sessions, login rate limiting, compatible Helmet headers, a 15–128-character new-password policy, common-password rejection, self/last-admin safeguards, denied-action auditing, trusted proxy-derived audit IPs, and generic browser error responses.
 
 ## Required before production exposure
 

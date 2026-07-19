@@ -76,8 +76,8 @@ edge gates pass.
 3. Add and validate security headers, keeping HSTS off until HTTPS is stable. **Compatible headers complete; live checks passed, while HSTS and CSP remain intentionally deferred.**
 4. Remove the internal override or set `SESSION_COOKIE_SECURE=true` before proxy validation.
 5. Confirm proxy trust remains limited to the single `npm01` hop; do not broadly trust arbitrary forwarding headers.
-6. Review password policy, admin-account protection, audit logging, session lifetime, logout invalidation, and incident response.
-7. Run dependency, application, and authentication-path tests against the exact deployment revision.
+6. Review password policy, admin-account protection, audit logging, session lifetime, logout invalidation, and incident response. **Internal baseline complete; compromised-password screening, MFA direction, routine audit ownership, and external incident evidence remain public-release gates.**
+7. Run dependency, application, and authentication-path tests against the exact deployment revision. **Complete for internal revision `dca592b946e1aad1b297c05d51cab58e7cac97c9`; repeat at every proxy/public stage.**
 
 ### Approved password and admin-account policy
 

@@ -11,6 +11,13 @@ This is the durable history of completed and validated work. Planned work belong
 - Documented the CSP inline-code migration boundary and incident-handling baseline; no existing credential reset, CSP/HSTS enforcement, public edge, database privilege, VM-resource, or hardware change was approved.
 - Merged CRM pull request #6 after both required CI checks passed and pinned merge revision `dca592b946e1aad1b297c05d51cab58e7cac97c9`; rollback remains `55331b096fa64b7fde8d505cc9dd209935b6b5b7`.
 
+### Implemented and validated
+
+- Deployed revision `dca592b946e1aad1b297c05d51cab58e7cac97c9` to the internal-only `crm01` canary without resetting or remigrating `crm_prod` and without forcing an existing credential change.
+- Confirmed exact revision, health, MongoDB connectivity, session collection and TTL index, 275 leads, and 4 users.
+- Reconfirmed the live dummy login sequence of five `401` responses followed by audited `429`; recent container logs contained no audit-write failure.
+- Retained internal HTTP with HSTS/CSP disabled and made no NPM/DNS/TLS/router, database-privilege, VM-resource, or hardware change.
+
 ## 2026-07-19 — CRM rate-limit and security-header canary
 
 ### Approved and documented
