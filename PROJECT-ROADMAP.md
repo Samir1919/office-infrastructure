@@ -158,6 +158,13 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
   password, TOTP 2FA, and protected backup codes. The owner approved
   `ryansamir90@gmail.com` as the NPM administrator email; no password or 2FA
   credential has been created or recorded.
+- NPM `2.15.1` is deployed internally with pinned image, SQLite persistence, and
+  IPv4-only TCP `80`, `81`, and `443`. Owner setup is complete; API health is
+  `OK` with `setup:true`, restart persistence passed, and about 1.3 GiB RAM
+  remained available. External CDN IP-range fetching is disabled to prevent a
+  blocking startup timeout. No proxy host, DNS, TLS, router rule, or public
+  exposure exists. Current frontend 2FA is unavailable, so TCP `81` remains
+  LAN/VPN-only.
 - MongoDB Community `8.3.4` is installed and validated on `db01`. Authorization is enabled; `crm_app` has `readWrite` access to `crm_prod` only; UFW allows TCP `27017` only from `crm01` and SSH only from the office server LAN. A test migration from Windows `realestate_crm` to `crm_prod` imported 275 leads and 4 users; the Windows source remains unchanged.
 - The internal CRM canary is deployed on `crm01` from Git revision `dca592b946e1aad1b297c05d51cab58e7cac97c9`, runs Node.js 24 LTS, returns healthy from `/healthz`, connects to `crm_prod`, and has no Nginx Proxy Manager host, public DNS, TLS certificate, or router forwarding. Permission taxonomy mapping remains applied to the migrated users.
 - The approved encrypted MongoDB-backed 12-hour session store is active and validated. Machine checks confirmed the `crm_prod.sessions` collection, its TTL index, and unchanged counts of 275 leads and 4 users; after an application-container restart, the owner refreshed the same authenticated browser page and confirmed the login persisted. Future CRM database archives exclude the ephemeral `sessions` collection so recovery intentionally requires a fresh login.
@@ -195,8 +202,9 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
    and explicit `192.168.10.106` binding for TCP `80`, `81`, and `443` is
    approved. NPM service start remains a separate approval.
 8. The owner-controlled NPM administrator email `ryansamir90@gmail.com` is
-   recorded without password or 2FA material. Request separate approval for the
-   first NPM service apply and owner-operated LAN setup wizard.
+   recorded without password or 2FA material. Internal service/setup validation
+   is complete; collect FQDN, DNS, public-IP/CGNAT, and router facts before any
+   CRM proxy/public stage.
 
 ## Supporting references
 

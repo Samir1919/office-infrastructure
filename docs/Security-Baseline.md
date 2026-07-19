@@ -37,8 +37,8 @@
 - NPM service apply remains separately approval gated.
 - NPM initial administration must use its one-time LAN-only setup wizard. The
   `INITIAL_ADMIN_*` automation path is prohibited because NPM `2.15.1` logs the
-  supplied initial password. Use a unique 20–100-character password plus TOTP
-  2FA and protect backup codes in the owner's approved password manager.
+  supplied initial password. Use a unique 20–100-character password. The current
+  frontend has no 2FA control, so TCP `81` remains strictly LAN/VPN-only.
 - TCP `81` must remain LAN/VPN-only and must never be forwarded publicly.
 
 ### CRM authentication baseline

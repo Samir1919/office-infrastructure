@@ -141,6 +141,11 @@ This is the durable history of completed and validated work. Planned work belong
   returned `502`. Prepared the official `IP_RANGES_FETCH_ENABLED=false` setting
   for the internal stage; CDN ranges are not needed for the current direct LAN
   path.
+- Applied that setting and reconfirmed immediate API `status:OK`, `setup:true`,
+  version `2.15.1`, persisted administrator state, IPv4-only ports, clean startup
+  logs, and about 1.3 GiB available RAM.
+- Confirmed the current frontend lacks a 2FA control despite backend endpoints;
+  rejected ad-hoc API secret handling and retained TCP `81` as LAN/VPN-only.
 - Recorded the owner-approved NPM administrator email
   `ryansamir90@gmail.com`; no password, TOTP secret, QR content, session token,
   or backup code was received or stored.

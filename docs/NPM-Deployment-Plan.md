@@ -1,6 +1,6 @@
 # Nginx Proxy Manager Internal Deployment Plan
 
-**Status:** IPv4 firewall/bindings and safe first-admin workflow validated; NPM service approval pending
+**Status:** Internal NPM service and administrator setup validated; no proxy host or public exposure approved
 **Host:** `npm01` (`192.168.10.106`)
 **Initial scope:** Internal NPM service and LAN/VPN-only administration; no CRM proxy host, DNS, certificate, router forwarding, or Internet exposure
 
@@ -302,8 +302,8 @@ Official references:
   a stronger minimum without placing the value in automation.
 - Complete the wizard only from an approved LAN client at
   `http://192.168.10.106:81`. Never make TCP `81` public.
-- After the wizard signs in, enable NPM's TOTP 2FA, verify one current code, and
-  store the returned backup codes in the protected password-manager record.
+- NPM `2.15.1` has backend 2FA endpoints but no frontend 2FA control. Do not pass
+  TOTP secrets through ad-hoc API tooling; keep TCP `81` LAN/VPN-only.
 - Never paste the password, TOTP secret, QR content, session token, or backup
   codes into chat, Git, screenshots, tickets, commands, or Ansible output.
 
@@ -315,9 +315,8 @@ Official references:
    for an unexpected user; do not reset or delete the SQLite file.
 3. The owner enters full name, approved email, and password directly in the
    browser. The AI does not receive or verify the secret value.
-4. Confirm the new user has administrator access, enable and verify TOTP 2FA,
-   securely retain backup codes, sign out, and prove a fresh password-plus-TOTP
-   login.
+4. Confirm the new user has administrator access. UI-based 2FA is unavailable in
+   this release; do not expose TCP `81` publicly.
 5. Stop for plaintext credentials in logs, an unexpected account, wizard access
    from an unapproved path, 2FA failure, missing backup codes, or failed re-login.
 
@@ -367,8 +366,8 @@ change safely.
 6. Owner-controlled administrator email `ryansamir90@gmail.com` is approved and
    recorded. Password generation, entry, and TOTP/backup-code handling remain
    owner-operated and never enter automation or chat.
-7. After firewall, IPv6 boundary, and administrator workflow evidence is
-   reviewed, separately approve or reject the first NPM service apply.
+7. The first internal NPM service apply and administrator setup are complete and
+   validated; no proxy host or public stage is approved.
 
 No NPM service, proxy host, administrator secret, certificate, DNS record,
 router rule, firewall rule, CRM setting, or VM resource was changed by this plan.
