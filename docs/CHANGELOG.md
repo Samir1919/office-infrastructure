@@ -11,6 +11,13 @@ This is the durable history of completed and validated work. Planned work belong
 - Documented exact validation and rollback gates; no public DNS, NPM, TLS, router, database, VM-resource, or hardware change was approved.
 - Merged CRM pull request #5 after both required CI checks passed and pinned merge revision `55331b096fa64b7fde8d505cc9dd209935b6b5b7`; rollback remains `1a8301bca2b4b57bd40a4847b0f83aaa40c6b341`.
 
+### Implemented and validated
+
+- Deployed revision `55331b096fa64b7fde8d505cc9dd209935b6b5b7` to the internal-only `crm01` canary with `SECURITY_HSTS_ENABLED=false`; database reset and remigration remained disabled and skipped.
+- Confirmed health, MongoDB connectivity, exact revision, session collection and TTL index, 275 leads, and 4 users.
+- Confirmed live Helmet headers, absent HSTS/CSP on internal HTTP, and a dummy-account sequence of five `401` responses followed by a `429` response with retry/rate-limit metadata.
+- Retained the existing NPM/DNS/TLS/router, database privileges, VM resources, and hardware state.
+
 ## 2026-07-19 — CRM login Enter-key canary
 
 ### Approved and prepared

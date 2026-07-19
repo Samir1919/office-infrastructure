@@ -1,6 +1,6 @@
 # CRM Access and HTTPS Publication Plan
 
-**Status:** MongoDB-backed session and login keyboard canaries validated; rate-limit and security-header canary approved; no publication approved
+**Status:** MongoDB session, login keyboard, rate-limit, and compatible security-header canaries validated; no publication approved
 **Scope:** Access path from users to `crm01` through `npm01`
 **Current state:** Internal HTTP canary at `crm01:3000`; `npm01` has Docker baseline but no deployed Nginx Proxy Manager service or CRM proxy host
 
@@ -72,8 +72,8 @@ edge gates pass.
 ## Required hardening before public HTTPS
 
 1. Replace `MemoryStore` with an approved persistent session store. **Complete: machine checks and browser restart validation passed.**
-2. Add login and authentication rate limiting with the approved abuse policy. **Approved for internal canary implementation.**
-3. Add and validate security headers, keeping HSTS off until HTTPS is stable. **Approved for internal canary implementation; CSP migration remains separate.**
+2. Add login and authentication rate limiting with the approved abuse policy. **Complete: tests, CI, and live internal-canary validation passed.**
+3. Add and validate security headers, keeping HSTS off until HTTPS is stable. **Compatible headers complete; live checks passed, while HSTS and CSP remain intentionally deferred.**
 4. Remove the internal override or set `SESSION_COOKIE_SECURE=true` before proxy validation.
 5. Confirm proxy trust remains limited to the single `npm01` hop; do not broadly trust arbitrary forwarding headers.
 6. Review password policy, admin-account protection, audit logging, session lifetime, logout invalidation, and incident response.
