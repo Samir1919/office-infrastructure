@@ -9,6 +9,7 @@ This is the durable history of completed and validated work. Planned work belong
 - Approved a NIST-aligned 15–128 Unicode-character policy for new passwords without composition or scheduled-expiry rules, plus local common-password rejection and a future compromised-password screening gate.
 - Approved self/last-admin demotion and deletion protection, denied-action audit events, trusted-proxy audit IP correction, and generic browser-facing server errors.
 - Documented the CSP inline-code migration boundary and incident-handling baseline; no existing credential reset, CSP/HSTS enforcement, public edge, database privilege, VM-resource, or hardware change was approved.
+- Merged CRM pull request #6 after both required CI checks passed and pinned merge revision `dca592b946e1aad1b297c05d51cab58e7cac97c9`; rollback remains `55331b096fa64b7fde8d505cc9dd209935b6b5b7`.
 
 ## 2026-07-19 — CRM rate-limit and security-header canary
 

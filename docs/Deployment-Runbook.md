@@ -91,12 +91,12 @@ Take the approved `db-installed` Proxmox snapshot after successful validation. T
 The CRM canary is restricted to `crm01`. It checks out the owner-approved GitHub commit, builds the Node.js 24 LTS Docker image, creates a mode-`0600` `.env.production` file from Vault values, and validates `/healthz` plus the MongoDB connection. It is internal-only and does not create a public Nginx Proxy Manager host.
 
 The current canary target is revision
-`55331b096fa64b7fde8d505cc9dd209935b6b5b7`. It retains the encrypted 12-hour
-session store and Enter-key login fix, and adds the approved rate limiting and
-compatible Helmet headers. This deployment does not reset or remigrate
+`dca592b946e1aad1b297c05d51cab58e7cac97c9`. It retains the validated session,
+login, rate-limit, and header controls and adds the approved password,
+admin-account, and audit hardening. This deployment does not reset or remigrate
 `crm_prod`; never pass `crm_reset_canary_database=true`. Rollback is the
-previously validated login revision
-`1a8301bca2b4b57bd40a4847b0f83aaa40c6b341` followed by the same playbook.
+previously validated auth-edge revision
+`55331b096fa64b7fde8d505cc9dd209935b6b5b7` followed by the same playbook.
 
 The canary is currently accessed by internal HTTP, so it explicitly sets `SESSION_COOKIE_SECURE=false` and `SECURITY_HSTS_ENABLED=false`; otherwise the browser cookie or transport policy would conflict with HTTP validation. These overrides are canary-only. A future Nginx Proxy Manager HTTPS deployment must enable secure cookies and may enable HSTS only after HTTPS is stable and rollback-tested.
 
