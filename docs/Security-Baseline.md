@@ -18,6 +18,21 @@
 - Ansible Vault for encrypted repository secrets.
 - Automatic-update policy and maintenance window.
 - TLS certificate management, backup verification, and DR testing.
-- CRM public login hardening: persistent production session store, authentication rate limiting, security headers, proxy/cookie validation, and incident-response evidence. The current default `express-session` `MemoryStore` blocks unrestricted public exposure.
+- CRM public login hardening: session persistence, rate limiting, and compatible headers are validated; proxy/cookie validation, CSP/HSTS staging, compromised-password screening, routine audit review, and incident-response evidence remain required.
+
+### CRM authentication baseline
+
+- New CRM passwords use a length-first policy of 15–128 Unicode code points;
+  password managers, paste, spaces, and browser autofill are allowed.
+- Do not impose composition rules or periodic password changes. Force a change
+  when compromise is known or reasonably suspected.
+- Protect the current admin session from self-demotion/self-deletion and ensure
+  at least one admin always remains.
+- Never render raw exception or database messages to users. Retain diagnostic
+  detail only in protected logs and audit records.
+- Audit client IPs must come from the application's approved one-proxy trust
+  chain, not directly from untrusted forwarding headers.
+- CSP enforcement requires the documented inline-code migration and route-level
+  regression validation; HSTS requires stable trusted HTTPS.
 
 Never record passwords, private keys, API tokens, or application `.env` files in Git.

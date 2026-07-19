@@ -79,6 +79,43 @@ edge gates pass.
 6. Review password policy, admin-account protection, audit logging, session lifetime, logout invalidation, and incident response.
 7. Run dependency, application, and authentication-path tests against the exact deployment revision.
 
+### Approved password and admin-account policy
+
+- New passwords must contain 15–128 Unicode code points. Spaces, paste, browser
+  autofill, and password managers remain supported; no arbitrary character-class
+  composition or scheduled-expiry rule is imposed.
+- Reject a small local list of common passwords immediately. A maintained
+  compromised-password screening source remains required before unrestricted
+  public release; it must not transmit plaintext passwords.
+- Apply the policy to new accounts and future password changes. Do not silently
+  invalidate or rewrite existing password hashes during this canary.
+- Prevent an authenticated admin from demoting or deleting their own account,
+  and prevent any operation that would demote or delete the last admin.
+- Record successful and denied account-administration actions in the existing
+  audit collection without storing submitted passwords.
+
+### Audit and incident-handling baseline
+
+- Derive audit client addresses from Express's one-hop trusted `req.ip`; do not
+  trust a raw client-supplied forwarding header.
+- Keep detailed internal errors in server logs/audit records while returning
+  generic user-facing errors that do not disclose database or stack details.
+- Review failed logins, limiter responses, role changes, user creation/deletion,
+  and audit-write failures during an incident. Preserve evidence before account
+  or service recovery actions.
+- No automatic audit-log deletion is approved until business/legal retention is
+  decided. Public release still requires alerting, routine review ownership, and
+  a documented credential-compromise response.
+
+### CSP migration boundary
+
+The current views contain inline scripts and HTML event handlers. Enforcing a
+strict CSP now would break login, lead, and administration interactions. CSP
+migration therefore remains a focused follow-up: move event handlers and inline
+scripts into same-origin static files or add per-response nonces, validate every
+critical route, begin with report-only observation, then enforce. An
+`unsafe-inline` production policy is not accepted as closure of this gate.
+
 ### Session-store alternatives
 
 | Store | Benefits | Risks / impact | Recommendation |
