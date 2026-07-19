@@ -214,6 +214,16 @@ Normal apply is blocked unless both `npm_firewall_apply_approved=true` and
 `npm_firewall_recovery_confirmed=true`. Do not set these gates for syntax or
 check-mode validation.
 
+The IPv4 firewall was applied and validated on 2026-07-19 without restarting
+Docker. Do not repeat the apply merely to test it; check mode is idempotent with
+zero changes. Docker-restart persistence testing remains a separate maintenance
+approval.
+
+Do not run the NPM service playbook while TCP `80` and `443` use all-address
+Compose mappings. The host has global IPv6 and the current project Docker chain
+is IPv4-only. Review and approve the documented recommendation to bind all NPM
+ports to `192.168.10.106` before service deployment.
+
 Do not set `npm_firewall_control_validated=true` merely because the design or
 syntax is reviewed. Set it only for an owner-approved NPM service apply after
 the production firewall rules are active and the documented SSH, chain,

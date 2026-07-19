@@ -142,8 +142,12 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
   control Docker-published ports, rejects editing Docker-owned chains or
   disabling Docker's iptables management, and recommends a layered UFW host
   baseline plus a narrowly scoped project chain reached from `DOCKER-USER`.
-  Non-deploying firewall automation preparation and static/check-mode validation
-  are complete; production firewall apply remains separately unapproved.
+  The IPv4 firewall is now applied and validated: UFW is active with LAN-only
+  SSH, and a persistent project-owned `NPM-FILTER` chain limits future IPv4 TCP
+  `80`, `81`, and `443` to the office LAN. Fresh SSH and zero-change check mode
+  passed; Docker was not restarted. The host has global IPv6 while the project
+  Docker policy is IPv4-only, so explicit IPv4 binding or a separately approved
+  IPv6 design is required before NPM service deployment.
 - MongoDB Community `8.3.4` is installed and validated on `db01`. Authorization is enabled; `crm_app` has `readWrite` access to `crm_prod` only; UFW allows TCP `27017` only from `crm01` and SSH only from the office server LAN. A test migration from Windows `realestate_crm` to `crm_prod` imported 275 leads and 4 users; the Windows source remains unchanged.
 - The internal CRM canary is deployed on `crm01` from Git revision `dca592b946e1aad1b297c05d51cab58e7cac97c9`, runs Node.js 24 LTS, returns healthy from `/healthz`, connects to `crm_prod`, and has no Nginx Proxy Manager host, public DNS, TLS certificate, or router forwarding. Permission taxonomy mapping remains applied to the migrated users.
 - The approved encrypted MongoDB-backed 12-hour session store is active and validated. Machine checks confirmed the `crm_prod.sessions` collection, its TTL index, and unchanged counts of 275 leads and 4 users; after an application-container restart, the owner refreshed the same authenticated browser page and confirmed the login persisted. Future CRM database archives exclude the ephemeral `sessions` collection so recovery intentionally requires a fresh login.
@@ -177,9 +181,10 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
    `/opt/nginx-proxy-manager` persistence are approved, as is preparation of a
    dedicated non-deploying Ansible role. Docker-aware LAN-only TCP `81` and the
    service apply remain later separate approvals.
-7. The layered NPM firewall design and non-deploying automation preparation are
-   approved and validated without applying rules. Production firewall apply and
-   NPM service start remain separate approvals.
+7. The layered NPM IPv4 firewall is applied and validated without a Docker
+   restart. Review and approve or reject explicit `192.168.10.106` binding for
+   TCP `80`, `81`, and `443`; Docker-restart persistence validation and NPM
+   service start remain separate approvals.
 
 ## Supporting references
 

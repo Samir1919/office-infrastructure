@@ -1,6 +1,6 @@
 # Nginx Proxy Manager Internal Deployment Plan
 
-**Status:** SQLite, NPM automation, and non-deploying firewall automation prepared and validated; firewall and service implementation approval pending
+**Status:** IPv4 host/Docker firewall applied and validated; IPv6 publication decision and NPM service implementation approval pending
 **Host:** `npm01` (`192.168.10.106`)
 **Initial scope:** Internal NPM service and LAN/VPN-only administration; no CRM proxy host, DNS, certificate, router forwarding, or Internet exposure
 
@@ -208,6 +208,43 @@ allow path, changes to Docker-managed chains, rules that affect unrelated
 containers, non-persistent policy after restart, or lack of Proxmox-console
 recovery access.
 
+### Applied IPv4 firewall evidence — 2026-07-19
+
+- UFW is active with low logging, default-deny incoming, default-allow outgoing,
+  default-deny routed traffic, and SSH TCP `22` allowed only from
+  `192.168.10.0/24`.
+- `DOCKER-USER` has exactly one jump to `NPM-FILTER`. The project chain accepts
+  established/related traffic, permits new TCP `80`, `81`, and `443` only from
+  `192.168.10.0/24` on `enp6s18`, drops other new IPv4 traffic to those ports,
+  and returns unrelated traffic.
+- The root-owned loader is mode `0750`; the root-owned systemd unit is mode
+  `0644`, enabled, and active. A repeat check-mode run reported zero changes.
+- A fresh SSH/Ansible connection succeeded. No NPM path, container, or listener
+  on TCP `80`, `81`, or `443` exists.
+- Docker was not restarted during this apply. Restart persistence validation
+  remains separately approval gated.
+
+### IPv6 publication gate
+
+`npm01` has a global IPv6 address and Docker's IPv6 `DOCKER-USER` chain is
+currently empty. UFW protects IPv6 host input, but the project-owned Docker
+forwarding chain is IPv4-only. There is no present exposure because NPM is not
+deployed and TCP `80`, `81`, and `443` are unused.
+
+The prepared Compose template already binds TCP `81` to the IPv4 LAN address,
+but its TCP `80` and `443` mappings currently use all host addresses. Do not
+deploy that template until one option is documented and approved:
+
+| Option | Benefits | Risks and impact | Assessment |
+|---|---|---|---|
+| Bind TCP `80`, `81`, and `443` to `192.168.10.106` | Prevents unintended Docker IPv6 publication; matches the current IPv4 LAN/router architecture; smallest change | Future intentional native IPv6 publication would require a reviewed change | Recommended for the current internal stage |
+| Add equivalent IPv6 Docker filtering and publish IPv6 | Preserves dual-stack service potential | Requires stable approved IPv6 prefix, IPv6 router/firewall facts, external tests, and wider public-edge review | Defer; facts and approval are absent |
+| Disable host/Docker IPv6 | Removes the path globally | Changes VM/network behaviour beyond NPM and may affect future services | Reject as disproportionate |
+
+The current recommendation is to bind all three NPM ports explicitly to
+`192.168.10.106`. This is a Compose preparation change only; it does not approve
+an NPM service start or public IPv4 publication.
+
 ## Approved automation-preparation boundary
 
 The approved preparation creates a dedicated `npm` role and `npm.yml` playbook
@@ -258,10 +295,11 @@ change safely.
 1. SQLite and the `/opt/nginx-proxy-manager` persistent layout are approved.
 2. Non-deploying Ansible/Compose preparation and validation are approved.
 3. Approve or reject the layered UFW plus project-owned `DOCKER-USER` design.
-4. Layered firewall design plus preparation and non-changing validation of its
-   dedicated role/unit are approved and complete. Production firewall apply
-   remains a later approval.
-5. After firewall evidence is reviewed, separately approve or reject the first
+4. The IPv4 firewall apply and non-restart validation are complete. Docker
+   restart persistence validation remains separately approval gated.
+5. Approve or reject explicit IPv4 binding of NPM TCP `80`, `81`, and `443`
+   before service deployment; native IPv6 publication remains deferred.
+6. After firewall and IPv6-boundary evidence is reviewed, separately approve or reject the first
    NPM service apply.
 
 No NPM service, proxy host, administrator secret, certificate, DNS record,

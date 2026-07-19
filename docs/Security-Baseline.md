@@ -12,6 +12,11 @@
 - `db01` UFW is active with default-deny incoming traffic; SSH is restricted to `192.168.10.0/24` and MongoDB TCP `27017` is restricted to `crm01` (`192.168.10.101`).
 - Proxmox automated inspection uses the privilege-separated `infra-audit@pve!codex` API token with the built-in `PVEAuditor` role only. Its effective permissions are audit-only, its secret remains in macOS Keychain, and HTTPS uses an owner-verified pinned `pve01.local` certificate. Insecure TLS bypass and automated root SSH access are prohibited.
 - The internal CRM canary uses persistent encrypted sessions, login rate limiting, compatible Helmet headers, a 15–128-character new-password policy, common-password rejection, self/last-admin safeguards, denied-action auditing, trusted proxy-derived audit IPs, and generic browser error responses.
+- `npm01` UFW is active with default-deny incoming traffic and SSH TCP `22`
+  allowed only from `192.168.10.0/24`. Its IPv4 Docker forwarding path has a
+  persistent project-owned `NPM-FILTER` chain reached once from `DOCKER-USER`;
+  internal-stage TCP `80`, `81`, and `443` are limited to the office LAN. No NPM
+  container or listener is deployed.
 
 ## Required before production exposure
 
@@ -23,13 +28,13 @@
 
 ## Required before internal NPM service deployment
 
-- `npm01` currently has inactive UFW and only Docker-managed base firewall
-  chains. Ordinary UFW rules do not reliably control Docker-published ports.
-- The documented recommendation is a layered host UFW baseline plus a narrowly
-  scoped project chain reached from Docker's `DOCKER-USER` chain. See the
+- The layered host UFW and IPv4 Docker policy are applied and validated. See the
   [NPM Deployment Plan](NPM-Deployment-Plan.md#docker-aware-firewall-design).
-- The firewall design, automation, production apply, Docker-restart persistence
-  test, and NPM service apply remain separately approval gated.
+- Docker-restart persistence testing remains separately approval gated.
+- `npm01` has global IPv6 while the project Docker policy is IPv4-only. Bind all
+  NPM ports explicitly to the approved IPv4 LAN address or complete a separately
+  approved IPv6 publication design before service deployment.
+- NPM service apply remains separately approval gated.
 - TCP `81` must remain LAN/VPN-only and must never be forwarded publicly.
 
 ### CRM authentication baseline

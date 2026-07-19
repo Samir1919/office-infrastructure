@@ -68,6 +68,27 @@ This is the durable history of completed and validated work. Planned work belong
   does not exist, actual firewall script/unit paths do not exist, no NPM
   container exists, and TCP `80`, `81`, and `443` remain unused.
 
+### Firewall implemented and validated
+
+- Applied the owner-approved `npm01` IPv4 firewall from committed revision
+  `4143a53` with Proxmox console recovery confirmed before the change.
+- Enabled UFW with default-deny incoming, default-allow outgoing, default-deny
+  routed traffic, low logging, and SSH TCP `22` allowed only from
+  `192.168.10.0/24`.
+- Installed and enabled the root-owned persistent NPM firewall loader/unit.
+  Confirmed exactly one `DOCKER-USER` jump and the expected allow/drop/return
+  order in the project-owned `NPM-FILTER` chain.
+- Confirmed a fresh SSH/Ansible connection, correct file permissions, active and
+  enabled unit state, no NPM application path/container, no TCP `80`, `81`, or
+  `443` listener, and a repeat check-mode result of zero changes.
+- Did not restart Docker. Persistence across Docker restart remains a separate
+  maintenance approval.
+- Identified a pre-deployment IPv6 gate: `npm01` has global IPv6 and an empty
+  IPv6 `DOCKER-USER` chain, while the prepared TCP `80`/`443` mappings are not
+  address-specific. No exposure exists because NPM is not deployed. Explicit
+  IPv4 binding is recommended before service apply; native IPv6 publication is
+  deferred pending facts and approval.
+
 ## 2026-07-19 — CRM account and audit hardening canary
 
 ### Approved and documented
