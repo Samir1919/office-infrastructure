@@ -221,8 +221,11 @@ recovery access.
   `0644`, enabled, and active. A repeat check-mode run reported zero changes.
 - A fresh SSH/Ansible connection succeeded. No NPM path, container, or listener
   on TCP `80`, `81`, or `443` exists.
-- Docker was not restarted during this apply. Restart persistence validation
-  remains separately approval gated.
+- The owner separately approved one Docker daemon restart. After the restart, a
+  fresh SSH/Ansible connection succeeded; Docker and the firewall unit were
+  active, the unit remained enabled, UFW policy was unchanged, and the exact
+  single jump plus project-chain rules were restored. Containers remained empty
+  and TCP `80`, `81`, and `443` remained unused.
 
 ### IPv6 publication gate
 
@@ -298,8 +301,8 @@ change safely.
 1. SQLite and the `/opt/nginx-proxy-manager` persistent layout are approved.
 2. Non-deploying Ansible/Compose preparation and validation are approved.
 3. Approve or reject the layered UFW plus project-owned `DOCKER-USER` design.
-4. The IPv4 firewall apply and non-restart validation are complete. Docker
-   restart persistence validation remains separately approval gated.
+4. The IPv4 firewall apply and Docker-restart persistence validation are
+   complete.
 5. Explicit IPv4 binding of NPM TCP `80`, `81`, and `443` is approved and
    prepared; native IPv6 publication remains deferred.
 6. After firewall and IPv6-boundary evidence is reviewed, separately approve or reject the first

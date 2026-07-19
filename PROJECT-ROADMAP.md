@@ -145,7 +145,8 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
   The IPv4 firewall is now applied and validated: UFW is active with LAN-only
   SSH, and a persistent project-owned `NPM-FILTER` chain limits future IPv4 TCP
   `80`, `81`, and `443` to the office LAN. Fresh SSH and zero-change check mode
-  passed; Docker was not restarted. The host has global IPv6 while the project
+  passed. A separately approved Docker restart reconfirmed the active/enabled
+  unit, unchanged UFW policy, and restored exact chain rules. The host has global IPv6 while the project
   Docker policy is IPv4-only. The owner approved explicit `192.168.10.106`
   bindings for NPM TCP `80`, `81`, and `443`; native IPv6 publication remains
   deferred.
@@ -182,10 +183,9 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
    `/opt/nginx-proxy-manager` persistence are approved, as is preparation of a
    dedicated non-deploying Ansible role. Docker-aware LAN-only TCP `81` and the
    service apply remain later separate approvals.
-7. The layered NPM IPv4 firewall is applied and validated without a Docker
-   restart, and explicit `192.168.10.106` binding for TCP `80`, `81`, and `443`
-   is approved. Docker-restart persistence validation and NPM service start
-   remain separate approvals.
+7. The layered NPM IPv4 firewall and Docker-restart persistence are validated,
+   and explicit `192.168.10.106` binding for TCP `80`, `81`, and `443` is
+   approved. NPM service start remains a separate approval.
 
 ## Supporting references
 

@@ -214,10 +214,11 @@ Normal apply is blocked unless both `npm_firewall_apply_approved=true` and
 `npm_firewall_recovery_confirmed=true`. Do not set these gates for syntax or
 check-mode validation.
 
-The IPv4 firewall was applied and validated on 2026-07-19 without restarting
-Docker. Do not repeat the apply merely to test it; check mode is idempotent with
-zero changes. Docker-restart persistence testing remains a separate maintenance
-approval.
+The IPv4 firewall was applied and validated on 2026-07-19. A separately approved
+Docker daemon restart reconfirmed fresh SSH access, active/enabled firewall unit,
+unchanged UFW policy, restored project-chain rules, empty containers, and unused
+TCP `80`, `81`, and `443`. Do not repeat the apply or restart merely to retest;
+check mode is idempotent with zero changes.
 
 The owner approved explicit `192.168.10.106` bindings for NPM TCP `80`, `81`,
 and `443`. The Compose template must retain those bindings while the host has

@@ -102,6 +102,17 @@ This is the durable history of completed and validated work. Planned work belong
 - Kept native IPv6 publication, NPM service apply, image pull, proxy hosts, DNS,
   TLS, and router forwarding separately gated.
 
+### NPM firewall Docker-restart persistence validated
+
+- With separate owner approval and Proxmox console recovery available,
+  restarted only the `npm01` Docker daemon while no containers existed.
+- Confirmed a fresh SSH/Ansible connection, active Docker, active and enabled
+  NPM firewall unit, unchanged UFW policy, exactly one `DOCKER-USER` jump, and
+  the complete expected `NPM-FILTER` rule order after the restart.
+- Reconfirmed no container, NPM application path, or listener on TCP `80`, `81`,
+  or `443`; no NPM service, image, proxy host, DNS, TLS, or router change was
+  introduced by the persistence test.
+
 ## 2026-07-19 — CRM account and audit hardening canary
 
 ### Approved and documented
