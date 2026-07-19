@@ -9,6 +9,7 @@ This is the durable history of completed and validated work. Planned work belong
 - Approved a two-layer, login-only failed-attempt policy: 5 attempts per hashed account-and-IP key and 25 attempts per IP in 15 minutes, with successful logins excluded and generic `429` responses.
 - Approved Helmet's compatible security headers while keeping HSTS disabled on internal HTTP and deferring CSP enforcement until inline browser code is migrated safely.
 - Documented exact validation and rollback gates; no public DNS, NPM, TLS, router, database, VM-resource, or hardware change was approved.
+- Merged CRM pull request #5 after both required CI checks passed and pinned merge revision `55331b096fa64b7fde8d505cc9dd209935b6b5b7`; rollback remains `1a8301bca2b4b57bd40a4847b0f83aaa40c6b341`.
 
 ## 2026-07-19 — CRM login Enter-key canary
 

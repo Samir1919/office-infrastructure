@@ -91,14 +91,14 @@ Take the approved `db-installed` Proxmox snapshot after successful validation. T
 The CRM canary is restricted to `crm01`. It checks out the owner-approved GitHub commit, builds the Node.js 24 LTS Docker image, creates a mode-`0600` `.env.production` file from Vault values, and validates `/healthz` plus the MongoDB connection. It is internal-only and does not create a public Nginx Proxy Manager host.
 
 The current canary target is revision
-`1a8301bca2b4b57bd40a4847b0f83aaa40c6b341`. It retains the encrypted 12-hour
-session store in `crm_prod.sessions` and adds reliable Enter-key submission to
-the login form. This deployment does not reset or remigrate `crm_prod`; never
-pass `crm_reset_canary_database=true`. Rollback is the previously validated
-session-store revision `e7a9ddbf8e8e3b12ba187906484e813150a3490f`
-followed by the same playbook.
+`55331b096fa64b7fde8d505cc9dd209935b6b5b7`. It retains the encrypted 12-hour
+session store and Enter-key login fix, and adds the approved rate limiting and
+compatible Helmet headers. This deployment does not reset or remigrate
+`crm_prod`; never pass `crm_reset_canary_database=true`. Rollback is the
+previously validated login revision
+`1a8301bca2b4b57bd40a4847b0f83aaa40c6b341` followed by the same playbook.
 
-The canary is currently accessed by internal HTTP, so it explicitly sets `SESSION_COOKIE_SECURE=false`; otherwise a browser cannot retain the login session cookie over HTTP. This override is canary-only. The CRM source defaults to secure cookies in production, and a future Nginx Proxy Manager HTTPS deployment must remove the override or set `SESSION_COOKIE_SECURE=true` before publication.
+The canary is currently accessed by internal HTTP, so it explicitly sets `SESSION_COOKIE_SECURE=false` and `SECURITY_HSTS_ENABLED=false`; otherwise the browser cookie or transport policy would conflict with HTTP validation. These overrides are canary-only. A future Nginx Proxy Manager HTTPS deployment must enable secure cookies and may enable HSTS only after HTTPS is stable and rollback-tested.
 
 All application containers must explicitly receive the project `timezone` value (`Asia/Dhaka` currently) through their Compose environment. Docker containers otherwise default to UTC even when their VM uses the correct local timezone. The CRM canary is the first deployed application to use this standard; future Website, ERP, and Nginx Proxy Manager deployments must apply it in their own service templates.
 

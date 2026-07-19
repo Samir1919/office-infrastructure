@@ -10,7 +10,7 @@
     - ../roles/crm/defaults/main.yml
 
   vars:
-    crm_session_expected_revision: 1a8301bca2b4b57bd40a4847b0f83aaa40c6b341
+    crm_session_expected_revision: 55331b096fa64b7fde8d505cc9dd209935b6b5b7
     crm_session_restart: false
     crm_session_require_document: false
 

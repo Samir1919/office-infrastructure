@@ -1,6 +1,6 @@
 ---
 crm_repository: 'https://github.com/Samir1919/realestate-crm.git'
-crm_git_revision: '1a8301bca2b4b57bd40a4847b0f83aaa40c6b341'
+crm_git_revision: '55331b096fa64b7fde8d505cc9dd209935b6b5b7'
 crm_deploy_path: '/opt/realestate-crm'
 crm_port: 3000
 crm_database_host: '192.168.10.102'
@@ -10,3 +10,4 @@ crm_database_user: 'crm_app'
 crm_bootstrap_admin_name: 'Admin User'
 crm_bootstrap_admin_email: 'admin@asalagroupbd.com'
 crm_reset_canary_database: false
+crm_security_hsts_enabled: false
