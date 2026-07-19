@@ -1,0 +1,18 @@
+---
+npm_firewall_apply_approved: false
+npm_firewall_recovery_confirmed: false
+
+npm_firewall_host: npm01
+npm_firewall_host_address: 192.168.10.106
+npm_firewall_lan_interface: enp6s18
+npm_firewall_lan_cidr: 192.168.10.0/24
+npm_firewall_tcp_ports:
+  - 80
+  - 81
+  - 443
+
+npm_firewall_chain: NPM-FILTER
+npm_firewall_staging_chain: NPM-FILTER-NEXT
+npm_firewall_script_path: /usr/local/sbin/npm-firewall
+npm_firewall_unit_name: npm-firewall.service
+npm_firewall_unit_path: "/etc/systemd/system/{{ npm_firewall_unit_name }}"

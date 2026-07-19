@@ -1,0 +1,12 @@
+---
+- name: Apply the NPM host and Docker-aware firewall
+  hosts: npm01
+  become: true
+  gather_facts: true
+
+  vars_files:
+    - ../group_vars/all/main.yml
+    - ../group_vars/all/vault.yml
+
+  roles:
+    - npm_firewall

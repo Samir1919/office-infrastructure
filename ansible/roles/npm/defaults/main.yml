@@ -1,0 +1,17 @@
+---
+npm_deployment_approved: false
+npm_firewall_control_validated: false
+
+npm_host: npm01
+npm_host_address: 192.168.10.106
+npm_install_dir: /opt/nginx-proxy-manager
+npm_data_dir: "{{ npm_install_dir }}/data"
+npm_letsencrypt_dir: "{{ npm_install_dir }}/letsencrypt"
+npm_compose_path: "{{ npm_install_dir }}/compose.yml"
+
+npm_image_version: "2.15.1"
+npm_image_digest: sha256:99a885f56ca2203a2eb352a5f9e2cd5c1e25786508debd725ad48ebe955d114f
+npm_image: "jc21/nginx-proxy-manager:{{ npm_image_version }}@{{ npm_image_digest }}"
+
+npm_admin_bind_address: 192.168.10.106
+npm_timezone: "{{ timezone }}"

@@ -129,6 +129,21 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 - The macOS Keychain provides the local Vault password; the encrypted Vault file is versioned only in the private repository.
 - New-control-node guidance now documents that GitHub contains encrypted Vault files but not their password, requires recovery of the same existing password from the old Keychain, an approved secondary password-manager entry, or a future encrypted offline copy, and prohibits replacing/overwriting Vault files when recovery is unavailable.
 - Docker Engine and Compose are installed and validated on `crm01`, `web01`, `erp01`, and `npm01`; each has a `docker-base` snapshot.
+- Read-only `npm01` inspection found Docker active with no containers, images,
+  custom networks, volumes, Compose/NPM files, or listeners on TCP `80`, `81`,
+  or `443`. The VM had about 1.5 GiB available RAM, zero swap use, 20% root-disk
+  use, and low load. UFW was inactive and only Docker-managed base nftables
+  chains were present, so a Docker-aware LAN-only TCP `81` control is a blocker
+  before NPM deployment. SQLite on `npm01`, the persistent layout, and
+  non-deploying automation preparation are approved and validated. The
+  administrator secret workflow, firewall implementation, service deployment,
+  proxy host, DNS, TLS, and router changes remain unapproved.
+- The NPM firewall architecture review documents why ordinary UFW does not
+  control Docker-published ports, rejects editing Docker-owned chains or
+  disabling Docker's iptables management, and recommends a layered UFW host
+  baseline plus a narrowly scoped project chain reached from `DOCKER-USER`.
+  Non-deploying firewall automation preparation and static/check-mode validation
+  are complete; production firewall apply remains separately unapproved.
 - MongoDB Community `8.3.4` is installed and validated on `db01`. Authorization is enabled; `crm_app` has `readWrite` access to `crm_prod` only; UFW allows TCP `27017` only from `crm01` and SSH only from the office server LAN. A test migration from Windows `realestate_crm` to `crm_prod` imported 275 leads and 4 users; the Windows source remains unchanged.
 - The internal CRM canary is deployed on `crm01` from Git revision `dca592b946e1aad1b297c05d51cab58e7cac97c9`, runs Node.js 24 LTS, returns healthy from `/healthz`, connects to `crm_prod`, and has no Nginx Proxy Manager host, public DNS, TLS certificate, or router forwarding. Permission taxonomy mapping remains applied to the migrated users.
 - The approved encrypted MongoDB-backed 12-hour session store is active and validated. Machine checks confirmed the `crm_prod.sessions` collection, its TTL index, and unchanged counts of 275 leads and 4 users; after an application-container restart, the owner refreshed the same authenticated browser page and confirmed the login persisted. Future CRM database archives exclude the ephemeral `sessions` collection so recovery intentionally requires a fresh login.
@@ -157,6 +172,14 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 3. The first off-host `crm_prod` archive is complete on the FileVault-enabled macOS control node: 13,322 bytes, mode `0600`, with matching remote/local SHA-256 `6b8d943368e068046624a45125a924b1ce8f258ef83c68d00fd73bcf99d152a0`; the `db01` temporary workspace was removed.
 4. The isolated restore test is complete: archive SHA-256 and all collection, document, and index manifests matched; `crm_prod` remained unchanged.
 5. Collect the owner-controlled FQDN, DNS provider, public-IP/CGNAT, and router facts before designing staged internal NPM/TLS validation. CSP migration, compromised-password screening, MFA direction, HSTS, secure cookies, and any public exposure remain separately gated. Hardware work remains deferred.
+6. Review and approve or reject the documented internal NPM design choices:
+   SQLite for the constrained single instance and
+   `/opt/nginx-proxy-manager` persistence are approved, as is preparation of a
+   dedicated non-deploying Ansible role. Docker-aware LAN-only TCP `81` and the
+   service apply remain later separate approvals.
+7. The layered NPM firewall design and non-deploying automation preparation are
+   approved and validated without applying rules. Production firewall apply and
+   NPM service start remain separate approvals.
 
 ## Supporting references
 

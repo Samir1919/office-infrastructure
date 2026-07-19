@@ -1,0 +1,20 @@
+---
+name: nginx-proxy-manager
+
+services:
+  app:
+    image: "{{ npm_image }}"
+    container_name: nginx-proxy-manager
+    restart: unless-stopped
+    environment:
+      TZ: "{{ npm_timezone }}"
+      DB_SQLITE_FILE: /data/database.sqlite
+    ports:
+      - "80:80"
+      - "443:443"
+      - "{{ npm_admin_bind_address }}:81:81"
+    volumes:
+      - "{{ npm_data_dir }}:/data"
+      - "{{ npm_letsencrypt_dir }}:/etc/letsencrypt"
+    security_opt:
+      - no-new-privileges:true

@@ -2,6 +2,72 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — Nginx Proxy Manager baseline and deployment design
+
+### Inspected
+
+- Confirmed `npm01` runs Ubuntu `24.04.4 LTS`, Docker Engine `29.6.2`, and
+  Compose `v5.3.1`, with no containers, images, custom networks, volumes,
+  Compose/NPM files, or listeners on TCP `80`, `81`, or `443`.
+- Recorded healthy constrained resources: about 1.5 GiB available RAM, zero
+  swap use, 24 GiB free root-disk space, and low load.
+- Confirmed UFW is inactive and nftables contains only Docker-managed base
+  chains; no firewall, Docker, service, secret, DNS, TLS, router, CRM, or VM
+  resource change was made.
+
+### Prepared
+
+- Added the internal NPM deployment plan with SQLite, MariaDB, and centralized
+  database alternatives; SQLite is recommended but remains owner-decision gated.
+- Documented pinned-image policy, persistent data/certificate paths,
+  Docker-aware LAN/VPN-only TCP `81`, dedicated Ansible automation boundaries,
+  validation, rollback, and stop conditions.
+- Kept NPM service deployment, proxy hosts, administrator credentials, public
+  facts, certificates, router forwarding, and firewall implementation separately
+  approval gated.
+- Recorded owner approval of SQLite on `npm01`, the
+  `/opt/nginx-proxy-manager` persistent layout, and non-deploying automation
+  preparation.
+- Added a host-guarded `npm` role and playbook with NPM `2.15.1` pinned to the
+  validated `linux/amd64` manifest digest. Normal apply is blocked unless both
+  deployment approval and Docker-aware firewall validation gates are explicitly
+  satisfied.
+
+### Validated
+
+- Passed repository whitespace checks, Ansible syntax validation, host-target
+  assertions, live port-conflict preflight, and non-changing check mode.
+- Rendered the Compose template only to a protected temporary control-node file
+  and passed Docker Compose schema validation without pulling an image.
+- Removed the temporary file and reconfirmed that `npm01` has no NPM application
+  path, containers, or listeners on TCP `80`, `81`, or `443`.
+
+### Firewall design prepared
+
+- Documented from official Docker guidance why ordinary UFW policy can be
+  bypassed by published-container traffic and why Docker's `DOCKER-USER` chain
+  is the supported user-rule insertion point for the inspected backend.
+- Compared LAN-IP binding, ordinary UFW, direct Docker-chain edits, disabled
+  Docker iptables management, and a project-owned chain reached from
+  `DOCKER-USER`.
+- Recommended layered UFW host protection plus a persistent, narrowly scoped
+  NPM forwarding chain, with two-session SSH safety, Docker-restart persistence,
+  denied-path validation, exact rollback, and stop conditions.
+- No firewall rule, UFW state, Docker daemon, container, port, secret, DNS, TLS,
+  router, CRM, or VM resource was changed by the design work.
+- Recorded owner approval of the layered firewall design and non-deploying
+  automation preparation.
+- Added a dedicated host-guarded `npm_firewall` role and playbook with separate
+  production-apply and Proxmox-recovery gates, UFW host policy, a project-owned
+  Docker chain, gap-resistant staged-chain replacement, systemd persistence,
+  and active-policy checks.
+- Passed Ansible syntax and check mode, required-command and target-interface
+  checks, shell syntax validation, and `systemd-analyze verify` using temporary
+  rendered files that were removed afterward.
+- Reconfirmed UFW remains inactive, `DOCKER-USER` remains empty, `NPM-FILTER`
+  does not exist, actual firewall script/unit paths do not exist, no NPM
+  container exists, and TCP `80`, `81`, and `443` remain unused.
+
 ## 2026-07-19 — CRM account and audit hardening canary
 
 ### Approved and documented

@@ -165,3 +165,56 @@ ansible-playbook playbooks/crm.yml --limit crm01 -e crm_reset_canary_database=tr
 ```
 
 Do not run the reset after importing Windows test or production data.
+
+## Nginx Proxy Manager preparation
+
+The current NPM scope is documented in the
+[NPM Deployment Plan](NPM-Deployment-Plan.md). Its read-only host inspection is
+complete. SQLite, the persistence layout, and non-deploying automation
+preparation are approved. Docker-aware TCP `81` control,
+administrator-secret workflow, and production apply remain approval gated.
+
+The dedicated `npm` role and `npm.yml` playbook are limited to `npm01`. They pin
+NPM `2.15.1` to the validated `linux/amd64` manifest digest and require both
+`npm_deployment_approved=true` and `npm_firewall_control_validated=true` before
+any normal apply. Do not set either gate merely to run validation.
+
+Run the non-changing preparation checks from `ansible/`:
+
+```bash
+ansible-playbook playbooks/npm.yml --syntax-check
+ansible-playbook playbooks/npm.yml --check --diff --limit npm01
+```
+
+Do not pull an NPM image, start a container, create an administrator secret, or
+change firewall rules during preparation. Compose schema is validated separately
+from a temporary rendered definition; do not copy that temporary file to
+`npm01`.
+
+The first approved service apply must not create a proxy host, TLS certificate,
+DNS record, router forwarding rule, or CRM configuration change. TCP `81` must
+remain LAN/VPN-only and must never be forwarded publicly.
+
+### NPM firewall gate
+
+The [Docker-aware firewall design](NPM-Deployment-Plan.md#docker-aware-firewall-design)
+compares IP binding, ordinary UFW, Docker-chain modification, disabled Docker
+iptables management, and a project-owned chain reached from `DOCKER-USER`.
+The layered UFW plus project-chain design and non-deploying automation
+preparation are approved. Production firewall apply remains unapproved.
+
+Run the non-changing preparation checks from `ansible/`:
+
+```bash
+ansible-playbook playbooks/npm-firewall.yml --syntax-check
+ansible-playbook playbooks/npm-firewall.yml --check --diff --limit npm01
+```
+
+Normal apply is blocked unless both `npm_firewall_apply_approved=true` and
+`npm_firewall_recovery_confirmed=true`. Do not set these gates for syntax or
+check-mode validation.
+
+Do not set `npm_firewall_control_validated=true` merely because the design or
+syntax is reviewed. Set it only for an owner-approved NPM service apply after
+the production firewall rules are active and the documented SSH, chain,
+allowed-path, denied-path, persistence, and rollback evidence has passed.

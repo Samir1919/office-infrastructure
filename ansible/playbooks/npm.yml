@@ -1,0 +1,12 @@
+---
+- name: Deploy Nginx Proxy Manager
+  hosts: npm01
+  become: true
+  gather_facts: true
+
+  vars_files:
+    - ../group_vars/all/main.yml
+    - ../group_vars/all/vault.yml
+
+  roles:
+    - npm

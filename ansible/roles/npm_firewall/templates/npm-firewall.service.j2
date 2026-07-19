@@ -1,0 +1,16 @@
+[Unit]
+Description=NPM Docker-aware firewall policy
+Documentation=https://docs.docker.com/engine/network/firewall-iptables/
+Requires=docker.service
+After=docker.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart={{ npm_firewall_script_path }} apply
+ExecReload={{ npm_firewall_script_path }} reload
+ExecStop={{ npm_firewall_script_path }} remove
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,82 @@
+#!/bin/sh
+set -eu
+
+iptables_cmd=/usr/sbin/iptables
+active_chain={{ npm_firewall_chain | quote }}
+staging_chain={{ npm_firewall_staging_chain | quote }}
+lan_interface={{ npm_firewall_lan_interface | quote }}
+lan_cidr={{ npm_firewall_lan_cidr | quote }}
+tcp_ports={{ npm_firewall_tcp_ports | join(',') | quote }}
+
+remove_jump() {
+    target_chain=$1
+    while "$iptables_cmd" -w -C DOCKER-USER -j "$target_chain" 2>/dev/null; do
+        "$iptables_cmd" -w -D DOCKER-USER -j "$target_chain"
+    done
+}
+
+remove_chain_if_present() {
+    target_chain=$1
+    remove_jump "$target_chain"
+    if "$iptables_cmd" -w -n -L "$target_chain" >/dev/null 2>&1; then
+        "$iptables_cmd" -w -F "$target_chain"
+        "$iptables_cmd" -w -X "$target_chain"
+    fi
+}
+
+apply_rules() {
+    "$iptables_cmd" -w -n -L DOCKER-USER >/dev/null
+
+    remove_chain_if_present "$staging_chain"
+    "$iptables_cmd" -w -N "$staging_chain"
+    "$iptables_cmd" -w -A "$staging_chain" \
+        -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+    "$iptables_cmd" -w -A "$staging_chain" \
+        -i "$lan_interface" -s "$lan_cidr" -p tcp \
+        -m multiport --dports "$tcp_ports" \
+        -m conntrack --ctstate NEW -j ACCEPT
+    "$iptables_cmd" -w -A "$staging_chain" \
+        -p tcp -m multiport --dports "$tcp_ports" \
+        -m conntrack --ctstate NEW -j DROP
+    "$iptables_cmd" -w -A "$staging_chain" -j RETURN
+
+    "$iptables_cmd" -w -I DOCKER-USER 1 -j "$staging_chain"
+    remove_chain_if_present "$active_chain"
+    "$iptables_cmd" -w -E "$staging_chain" "$active_chain"
+}
+
+check_rules() {
+    "$iptables_cmd" -w -C DOCKER-USER -j "$active_chain"
+    "$iptables_cmd" -w -C "$active_chain" \
+        -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+    "$iptables_cmd" -w -C "$active_chain" \
+        -i "$lan_interface" -s "$lan_cidr" -p tcp \
+        -m multiport --dports "$tcp_ports" \
+        -m conntrack --ctstate NEW -j ACCEPT
+    "$iptables_cmd" -w -C "$active_chain" \
+        -p tcp -m multiport --dports "$tcp_ports" \
+        -m conntrack --ctstate NEW -j DROP
+    "$iptables_cmd" -w -C "$active_chain" -j RETURN
+}
+
+remove_rules() {
+    remove_chain_if_present "$staging_chain"
+    remove_chain_if_present "$active_chain"
+}
+
+case "${1:-}" in
+    apply|reload)
+        apply_rules
+        check_rules
+        ;;
+    check)
+        check_rules
+        ;;
+    remove)
+        remove_rules
+        ;;
+    *)
+        echo "usage: $0 {apply|reload|check|remove}" >&2
+        exit 2
+        ;;
+esac

@@ -21,6 +21,17 @@
 - TLS certificate management, backup verification, and DR testing.
 - CRM public login hardening: session persistence, rate limiting, and compatible headers are validated; proxy/cookie validation, CSP/HSTS staging, compromised-password screening, routine audit review, and incident-response evidence remain required.
 
+## Required before internal NPM service deployment
+
+- `npm01` currently has inactive UFW and only Docker-managed base firewall
+  chains. Ordinary UFW rules do not reliably control Docker-published ports.
+- The documented recommendation is a layered host UFW baseline plus a narrowly
+  scoped project chain reached from Docker's `DOCKER-USER` chain. See the
+  [NPM Deployment Plan](NPM-Deployment-Plan.md#docker-aware-firewall-design).
+- The firewall design, automation, production apply, Docker-restart persistence
+  test, and NPM service apply remain separately approval gated.
+- TCP `81` must remain LAN/VPN-only and must never be forwarded publicly.
+
 ### CRM authentication baseline
 
 - New CRM passwords use a length-first policy of 15–128 Unicode code points;

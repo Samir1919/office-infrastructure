@@ -140,6 +140,7 @@ Before deploying NPM or a proxy host, record and approve:
 | DNS provider and account control | Pending owner input |
 | Public IPv4 or CGNAT status | Pending router/ISP validation |
 | Router ownership and port-forward capability | Pending owner validation |
+| NPM host/service design | Read-only baseline and alternatives documented in [NPM Deployment Plan](NPM-Deployment-Plan.md); implementation approval pending |
 | NPM admin identity/secret storage | Pending; must use Vault/approved password manager |
 | Certificate method | Pending; Let's Encrypt HTTP-01 for public 80/443 or approved DNS-01 workflow |
 | Backend | Planned `http://192.168.10.101:3000` |
@@ -150,11 +151,14 @@ Before deploying NPM or a proxy host, record and approve:
 
 ### Stage 1 — Internal proxy only
 
-1. Deploy Nginx Proxy Manager on `npm01` from documented, pinned configuration after owner approval.
-2. Restrict its administration interface to LAN/VPN.
-3. Create an internal-only CRM proxy host to `crm01:3000`; do not change the router or public DNS.
-4. Enable `SESSION_COOKIE_SECURE=true` only when testing through trusted HTTPS; retain an approved rollback to the internal HTTP canary.
-5. Validate health, login, CSRF-protected forms, permissions, forwarding headers, logs, memory, and session persistence across an application restart.
+1. Approve the database, persistence, Docker-aware TCP `81` restriction, and
+   pinned configuration described in the [NPM Deployment Plan](NPM-Deployment-Plan.md).
+2. Deploy Nginx Proxy Manager on `npm01` from that documented configuration only
+   after a separate owner approval.
+3. Restrict its administration interface to LAN/VPN.
+4. Create an internal-only CRM proxy host to `crm01:3000`; do not change the router or public DNS.
+5. Enable `SESSION_COOKIE_SECURE=true` only when testing through trusted HTTPS; retain an approved rollback to the internal HTTP canary.
+6. Validate health, login, CSRF-protected forms, permissions, forwarding headers, logs, memory, and session persistence across an application restart.
 
 ### Stage 2 — Public edge readiness
 

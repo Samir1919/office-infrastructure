@@ -1,0 +1,131 @@
+---
+- name: Verify the approved NPM target
+  ansible.builtin.assert:
+    that:
+      - inventory_hostname == npm_host
+      - ansible_host == npm_host_address
+      - ansible_facts['distribution'] == 'Ubuntu'
+      - ansible_facts['distribution_version'] is version('24.04', '>=')
+      - ansible_facts['architecture'] == 'x86_64'
+    fail_msg: NPM automation may run only on the approved Ubuntu amd64 npm01 host.
+
+- name: Require explicit production gates before changing npm01
+  ansible.builtin.assert:
+    that:
+      - npm_deployment_approved | bool
+      - npm_firewall_control_validated | bool
+    fail_msg: >-
+      NPM deployment and Docker-aware firewall control require separate owner
+      approval and validation before production apply.
+  when: not ansible_check_mode
+
+- name: Find an existing approved NPM container
+  ansible.builtin.command:
+    argv:
+      - docker
+      - ps
+      - --all
+      - --quiet
+      - --filter
+      - name=^/nginx-proxy-manager$
+  register: npm_existing_container
+  changed_when: false
+  check_mode: false
+
+- name: Find containers publishing an NPM port
+  ansible.builtin.command:
+    argv:
+      - docker
+      - ps
+      - --quiet
+      - --filter
+      - "publish={{ item }}"
+  loop:
+    - '80'
+    - '81'
+    - '443'
+  register: npm_published_port_containers
+  changed_when: false
+  check_mode: false
+
+- name: Inspect host TCP listeners before NPM deployment
+  ansible.builtin.command:
+    argv:
+      - ss
+      - -H
+      - -ltn
+  register: npm_tcp_listeners
+  changed_when: false
+  check_mode: false
+
+- name: Reject conflicting containers and host listeners
+  ansible.builtin.assert:
+    that:
+      - >-
+        (npm_published_port_containers.results |
+         map(attribute='stdout_lines') | flatten | unique |
+         difference(npm_existing_container.stdout_lines) | length) == 0
+      - >-
+        (npm_existing_container.stdout_lines | length > 0) or
+        (npm_tcp_listeners.stdout_lines |
+         select('search', ':(80|81|443)\\s') | list | length == 0)
+    fail_msg: >-
+      TCP 80, 81, or 443 is already used by an unapproved container or host
+      listener. Stop before rendering or starting NPM.
+
+- name: Create the NPM application directory
+  ansible.builtin.file:
+    path: "{{ npm_install_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
+
+- name: Create persistent NPM directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
+  loop:
+    - "{{ npm_data_dir }}"
+    - "{{ npm_letsencrypt_dir }}"
+
+- name: Render the pinned NPM Compose definition
+  ansible.builtin.template:
+    src: compose.yml.j2
+    dest: "{{ npm_compose_path }}"
+    owner: root
+    group: root
+    mode: '0640'
+
+- name: Validate the rendered NPM Compose definition
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - --file
+      - "{{ npm_compose_path }}"
+      - config
+      - --quiet
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Start the approved NPM service
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - --file
+      - "{{ npm_compose_path }}"
+      - up
+      - --detach
+      - --remove-orphans
+  register: npm_compose_up
+  changed_when: >-
+    'Started' in npm_compose_up.stderr or
+    'Created' in npm_compose_up.stderr or
+    'Recreated' in npm_compose_up.stderr or
+    'Pulled' in npm_compose_up.stderr
+  when: not ansible_check_mode

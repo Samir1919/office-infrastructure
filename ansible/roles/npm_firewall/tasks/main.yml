@@ -1,0 +1,101 @@
+---
+- name: Verify the approved NPM firewall target
+  ansible.builtin.assert:
+    that:
+      - inventory_hostname == npm_firewall_host
+      - ansible_host == npm_firewall_host_address
+      - ansible_facts['distribution'] == 'Ubuntu'
+      - ansible_facts['distribution_version'] is version('24.04', '>=')
+      - ansible_facts['architecture'] == 'x86_64'
+      - npm_firewall_lan_interface in ansible_facts['interfaces']
+    fail_msg: NPM firewall automation may run only on the approved npm01 host and LAN interface.
+
+- name: Require explicit firewall and recovery approval gates
+  ansible.builtin.assert:
+    that:
+      - npm_firewall_apply_approved | bool
+      - npm_firewall_recovery_confirmed | bool
+    fail_msg: >-
+      Production firewall apply requires separate owner approval and confirmed
+      Proxmox-console recovery access.
+  when: not ansible_check_mode
+
+- name: Verify required firewall commands are installed
+  ansible.builtin.command:
+    argv:
+      - "{{ item }}"
+      - --version
+  loop:
+    - /usr/sbin/iptables
+    - /usr/sbin/ufw
+  changed_when: false
+  check_mode: false
+
+- name: Verify Docker's user firewall chain exists
+  ansible.builtin.command:
+    argv:
+      - /usr/sbin/iptables
+      - -w
+      - -n
+      - -L
+      - DOCKER-USER
+  changed_when: false
+  check_mode: false
+
+- name: Render the NPM firewall rule loader
+  ansible.builtin.template:
+    src: npm-firewall.sh.j2
+    dest: "{{ npm_firewall_script_path }}"
+    owner: root
+    group: root
+    mode: '0750'
+  notify: Reload NPM firewall policy
+
+- name: Render the NPM firewall systemd unit
+  ansible.builtin.template:
+    src: npm-firewall.service.j2
+    dest: "{{ npm_firewall_unit_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Reload systemd configuration
+    - Reload NPM firewall policy
+
+- name: Set default UFW incoming policy to deny
+  community.general.ufw:
+    direction: incoming
+    policy: deny
+
+- name: Set default UFW outgoing policy to allow
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Allow SSH only from the office server LAN
+  community.general.ufw:
+    rule: allow
+    proto: tcp
+    src: "{{ npm_firewall_lan_cidr }}"
+    port: '22'
+    comment: Office LAN SSH
+
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled
+
+- name: Enable and start the persistent NPM firewall policy
+  ansible.builtin.systemd_service:
+    name: "{{ npm_firewall_unit_name }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: not ansible_check_mode
+
+- name: Validate the active NPM Docker-aware firewall policy
+  ansible.builtin.command:
+    argv:
+      - "{{ npm_firewall_script_path }}"
+      - check
+  changed_when: false
+  when: not ansible_check_mode
