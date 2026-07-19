@@ -113,6 +113,23 @@ This is the durable history of completed and validated work. Planned work belong
   or `443`; no NPM service, image, proxy host, DNS, TLS, or router change was
   introduced by the persistence test.
 
+### NPM first-administrator workflow prepared
+
+- Verified from official NPM `v2.15.1` source that the normal first-run setup
+  wizard collects full name, email, and an 8–100-character password only when no
+  active user exists.
+- Rejected `INITIAL_ADMIN_EMAIL`/`INITIAL_ADMIN_PASSWORD` automation because the
+  upstream backend logs the supplied initial plaintext password. The Compose
+  template intentionally omits both variables.
+- Recommended an owner-entered unique 20–100-character password, TOTP 2FA, and
+  protected password-manager storage for backup codes, with a fresh-login gate
+  and explicit stop conditions.
+- Passed Ansible/Compose syntax validation and confirmed the rendered container
+  environment contains `DB_SQLITE_FILE` and `TZ` but no `INITIAL_ADMIN_*` key.
+- Removed the temporary validation file and reconfirmed NPM remains undeployed.
+- No administrator identity, password, TOTP secret, backup code, session, NPM
+  service, image, container, proxy host, DNS, TLS, or router rule was created.
+
 ## 2026-07-19 — CRM account and audit hardening canary
 
 ### Approved and documented

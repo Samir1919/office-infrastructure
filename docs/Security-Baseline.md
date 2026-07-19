@@ -30,11 +30,15 @@
 
 - The layered host UFW and IPv4 Docker policy are applied and validated. See the
   [NPM Deployment Plan](NPM-Deployment-Plan.md#docker-aware-firewall-design).
-- Docker-restart persistence testing remains separately approval gated.
+- Docker-restart persistence testing is complete and passed.
 - `npm01` has global IPv6 while the project Docker policy is IPv4-only. Bind all
   NPM ports explicitly to the approved IPv4 LAN address or complete a separately
   approved IPv6 publication design before service deployment.
 - NPM service apply remains separately approval gated.
+- NPM initial administration must use its one-time LAN-only setup wizard. The
+  `INITIAL_ADMIN_*` automation path is prohibited because NPM `2.15.1` logs the
+  supplied initial password. Use a unique 20–100-character password plus TOTP
+  2FA and protect backup codes in the owner's approved password manager.
 - TCP `81` must remain LAN/VPN-only and must never be forwarded publicly.
 
 ### CRM authentication baseline

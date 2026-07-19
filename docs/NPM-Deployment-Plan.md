@@ -1,6 +1,6 @@
 # Nginx Proxy Manager Internal Deployment Plan
 
-**Status:** IPv4 host/Docker firewall and explicit IPv4 NPM bindings approved; NPM service implementation approval pending
+**Status:** IPv4 firewall/bindings and safe first-admin workflow validated; administrator email and NPM service approval pending
 **Host:** `npm01` (`192.168.10.106`)
 **Initial scope:** Internal NPM service and LAN/VPN-only administration; no CRM proxy host, DNS, certificate, router forwarding, or Internet exposure
 
@@ -265,6 +265,62 @@ mix application deployment into the existing generic Docker role. The role must:
 6. support `--syntax-check` and a meaningful `--check --limit npm01` run;
 7. start containers only during a separately approved apply.
 
+## Administrator identity and first-login workflow
+
+### Upstream behaviour
+
+Official NPM `v2.15.1` source provides two first-admin paths:
+
+1. Without `INITIAL_ADMIN_EMAIL` and `INITIAL_ADMIN_PASSWORD`, the
+   unauthenticated setup wizard is available only while no active user exists.
+   It requests full name, email, and a password of 8–100 characters, then signs
+   in the new administrator.
+2. With both variables, the backend creates the initial user automatically but
+   logs the supplied initial email **and plaintext password**. This path is
+   rejected for this project.
+
+The Compose template intentionally omits both `INITIAL_ADMIN_*` variables. Do
+not add them through Compose, Ansible Vault, command-line extra variables, or a
+temporary environment file; Vault encryption at rest would not prevent the
+upstream runtime log disclosure.
+
+Official references:
+
+- [NPM v2.15.1 initial-user backend](https://github.com/NginxProxyManager/nginx-proxy-manager/blob/v2.15.1/backend/setup.js)
+- [NPM v2.15.1 setup wizard](https://github.com/NginxProxyManager/nginx-proxy-manager/blob/v2.15.1/frontend/src/pages/Setup/index.tsx)
+- [NPM v2.15.1 2FA API](https://github.com/NginxProxyManager/nginx-proxy-manager/blob/v2.15.1/backend/schema/paths/users/userID/2fa/enable/post.json)
+
+### Approved security recommendation
+
+- The owner must provide an owner-controlled administrator email before service
+  deployment. Do not invent an address or silently reuse the CRM identity.
+- Use the approved password manager to generate and store one unique password
+  of 20–100 characters. NPM's upstream minimum is only eight; the project uses
+  a stronger minimum without placing the value in automation.
+- Complete the wizard only from an approved LAN client at
+  `http://192.168.10.106:81`. Never make TCP `81` public.
+- After the wizard signs in, enable NPM's TOTP 2FA, verify one current code, and
+  store the returned backup codes in the protected password-manager record.
+- Never paste the password, TOTP secret, QR content, session token, or backup
+  codes into chat, Git, screenshots, tickets, commands, or Ansible output.
+
+### First-login validation and stop conditions
+
+1. Confirm the browser URL is exactly the LAN address and TCP `81` is not
+   router-forwarded.
+2. Confirm the wizard, rather than a pre-existing login account, is shown. Stop
+   for an unexpected user; do not reset or delete the SQLite file.
+3. The owner enters full name, approved email, and password directly in the
+   browser. The AI does not receive or verify the secret value.
+4. Confirm the new user has administrator access, enable and verify TOTP 2FA,
+   securely retain backup codes, sign out, and prove a fresh password-plus-TOTP
+   login.
+5. Stop for plaintext credentials in logs, an unexpected account, wizard access
+   from an unapproved path, 2FA failure, missing backup codes, or failed re-login.
+
+Initial account state resides in SQLite and belongs in the NPM backup/restore
+scope. Do not rerun setup by deleting `database.sqlite`.
+
 ## Validation after a future approved service deployment
 
 1. Confirm the exact image tag and manifest digest.
@@ -305,8 +361,11 @@ change safely.
    complete.
 5. Explicit IPv4 binding of NPM TCP `80`, `81`, and `443` is approved and
    prepared; native IPv6 publication remains deferred.
-6. After firewall and IPv6-boundary evidence is reviewed, separately approve or reject the first
-   NPM service apply.
+6. Provide the owner-controlled NPM administrator email. Password generation,
+   entry, and TOTP/backup-code handling remain owner-operated and never enter
+   automation or chat.
+7. After firewall, IPv6 boundary, and administrator workflow evidence is
+   reviewed, separately approve or reject the first NPM service apply.
 
 No NPM service, proxy host, administrator secret, certificate, DNS record,
 router rule, firewall rule, CRM setting, or VM resource was changed by this plan.

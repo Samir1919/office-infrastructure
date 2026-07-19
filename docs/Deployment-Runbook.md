@@ -195,13 +195,27 @@ The first approved service apply must not create a proxy host, TLS certificate,
 DNS record, router forwarding rule, or CRM configuration change. TCP `81` must
 remain LAN/VPN-only and must never be forwarded publicly.
 
+### NPM first administrator
+
+Do not define `INITIAL_ADMIN_EMAIL` or `INITIAL_ADMIN_PASSWORD`. NPM `2.15.1`
+logs the automated initial password, so the owner must use the one-time LAN-only
+setup wizard. Before service apply, record only the approved administrator email;
+never record the password, TOTP secret, QR content, session token, or backup
+codes in the repository or Ansible output.
+
+The owner generates a unique 20–100-character password in the approved password
+manager, enters it directly in the setup wizard, enables TOTP 2FA, stores backup
+codes in the protected password-manager record, signs out, and validates a fresh
+password-plus-TOTP login. Stop for an unexpected existing user or plaintext
+credential; do not delete `database.sqlite` to restart setup.
+
 ### NPM firewall gate
 
 The [Docker-aware firewall design](NPM-Deployment-Plan.md#docker-aware-firewall-design)
 compares IP binding, ordinary UFW, Docker-chain modification, disabled Docker
 iptables management, and a project-owned chain reached from `DOCKER-USER`.
-The layered UFW plus project-chain design and non-deploying automation
-preparation are approved. Production firewall apply remains unapproved.
+The layered UFW plus project-chain design is applied and validated, including a
+separately approved Docker-restart persistence test.
 
 Run the non-changing preparation checks from `ansible/`:
 

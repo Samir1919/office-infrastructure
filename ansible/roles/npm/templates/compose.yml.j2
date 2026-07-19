@@ -7,6 +7,8 @@ services:
     container_name: nginx-proxy-manager
     restart: unless-stopped
     environment:
+      # INITIAL_ADMIN_EMAIL/PASSWORD are intentionally omitted: NPM 2.15.1 logs
+      # the automated initial password. The owner uses the LAN-only setup wizard.
       TZ: "{{ npm_timezone }}"
       DB_SQLITE_FILE: /data/database.sqlite
     ports:
