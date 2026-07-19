@@ -1,6 +1,6 @@
 # CRM Access and HTTPS Publication Plan
 
-**Status:** MongoDB-backed session canary validated; remaining public-hardening gates pending; no publication approved
+**Status:** MongoDB-backed session and login keyboard canaries validated; rate-limit and security-header canary approved; no publication approved
 **Scope:** Access path from users to `crm01` through `npm01`
 **Current state:** Internal HTTP canary at `crm01:3000`; `npm01` has Docker baseline but no deployed Nginx Proxy Manager service or CRM proxy host
 
@@ -37,15 +37,43 @@ MongoDB TTL index, and keeps the internal HTTP cookie override explicit. The
 existing `crm_app` account already has the approved `readWrite` scope on
 `crm_prod`, so no new database privilege or firewall rule is introduced.
 
-Canary deployment must verify that a browser login remains valid across an
-application-container restart. Until that validation and the remaining
-hardening items pass, unrestricted public login remains blocked.
+Browser restart validation and the focused Enter-key login fix have passed.
+Unrestricted public login remains blocked until the remaining hardening and
+edge gates pass.
+
+### Approved authentication-abuse policy
+
+- Apply rate limiting only to `POST /login`; login-page reads and authenticated
+  application traffic are not included.
+- Allow at most 5 failed attempts per normalized account-and-client-IP key in a
+  15-minute window, plus a broader limit of 25 failed attempts per client IP in
+  the same window.
+- Successful logins do not consume either quota. Return a generic HTTP `429`
+  response with `Retry-After` and standard rate-limit headers; do not reveal
+  whether an account exists.
+- Hash the normalized email before composing the account limiter key; do not
+  retain a raw email address in the limiter store.
+- The initial single-instance canary may use the library memory store. Its
+  counters reset on application restart and do not coordinate multiple
+  instances, so a shared store is required before horizontal scaling and must
+  be reconsidered during final public-release review.
+
+### Approved security-header policy
+
+- Apply Helmet's non-transport security headers globally, including protection
+  against framing and MIME sniffing and a restrictive referrer policy.
+- Keep HSTS disabled while the canary is served over internal HTTP. Enable it
+  only after trusted HTTPS is stable and rollback has been exercised.
+- Keep CSP enforcement disabled in this focused change because the current EJS
+  views contain inline scripts and event handlers. CSP requires a separately
+  tested nonce/external-script migration; silently allowing unsafe inline script
+  would provide little protection.
 
 ## Required hardening before public HTTPS
 
 1. Replace `MemoryStore` with an approved persistent session store. **Complete: machine checks and browser restart validation passed.**
-2. Add login and authentication rate limiting with a documented lockout/abuse policy.
-3. Add and validate security headers, including HSTS only after HTTPS is stable.
+2. Add login and authentication rate limiting with the approved abuse policy. **Approved for internal canary implementation.**
+3. Add and validate security headers, keeping HSTS off until HTTPS is stable. **Approved for internal canary implementation; CSP migration remains separate.**
 4. Remove the internal override or set `SESSION_COOKIE_SECURE=true` before proxy validation.
 5. Confirm proxy trust remains limited to the single `npm01` hop; do not broadly trust arbitrary forwarding headers.
 6. Review password policy, admin-account protection, audit logging, session lifetime, logout invalidation, and incident response.

@@ -2,6 +2,14 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — CRM rate-limit and security-header canary
+
+### Approved and documented
+
+- Approved a two-layer, login-only failed-attempt policy: 5 attempts per hashed account-and-IP key and 25 attempts per IP in 15 minutes, with successful logins excluded and generic `429` responses.
+- Approved Helmet's compatible security headers while keeping HSTS disabled on internal HTTP and deferring CSP enforcement until inline browser code is migrated safely.
+- Documented exact validation and rollback gates; no public DNS, NPM, TLS, router, database, VM-resource, or hardware change was approved.
+
 ## 2026-07-19 — CRM login Enter-key canary
 
 ### Approved and prepared

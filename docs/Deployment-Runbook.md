@@ -125,6 +125,21 @@ After the CRM canary deployment:
 6. On the internal login page, enter credentials and press Enter from a
    credential field. The form must submit without requiring a mouse click.
 
+For the approved rate-limit and security-header canary, validate all of the
+following before retaining the revision:
+
+1. Normal login and CSRF behaviour remain functional.
+2. Five failed attempts for one account-and-IP key return `401`; the next
+   attempt returns generic `429` with `Retry-After` and rate-limit headers.
+3. Successful login attempts are excluded from the failure quota.
+4. Responses include the approved Helmet headers but no
+   `Strict-Transport-Security` header on the internal HTTP canary.
+5. The application remains healthy, the exact revision is pinned, session TTL
+   remains present, and the 275 leads / 4 users gates remain unchanged.
+6. Roll back to `1a8301bca2b4b57bd40a4847b0f83aaa40c6b341` for broken login,
+   missing headers, unexpected HSTS/CSP enforcement, limiter bypass, false
+   lockout, application errors, or protected-count drift.
+
 Run the non-restart metadata validation immediately after deployment:
 
 ```bash
