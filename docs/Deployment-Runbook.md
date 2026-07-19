@@ -219,10 +219,10 @@ Docker. Do not repeat the apply merely to test it; check mode is idempotent with
 zero changes. Docker-restart persistence testing remains a separate maintenance
 approval.
 
-Do not run the NPM service playbook while TCP `80` and `443` use all-address
-Compose mappings. The host has global IPv6 and the current project Docker chain
-is IPv4-only. Review and approve the documented recommendation to bind all NPM
-ports to `192.168.10.106` before service deployment.
+The owner approved explicit `192.168.10.106` bindings for NPM TCP `80`, `81`,
+and `443`. The Compose template must retain those bindings while the host has
+global IPv6 and the project Docker chain remains IPv4-only. Native IPv6
+publication is deferred and requires a separate design and approval.
 
 Do not set `npm_firewall_control_validated=true` merely because the design or
 syntax is reviewed. Set it only for an owner-approved NPM service apply after

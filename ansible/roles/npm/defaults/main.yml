@@ -13,5 +13,6 @@ npm_image_version: "2.15.1"
 npm_image_digest: sha256:99a885f56ca2203a2eb352a5f9e2cd5c1e25786508debd725ad48ebe955d114f
 npm_image: "jc21/nginx-proxy-manager:{{ npm_image_version }}@{{ npm_image_digest }}"
 
+npm_proxy_bind_address: 192.168.10.106
 npm_admin_bind_address: 192.168.10.106
 npm_timezone: "{{ timezone }}"

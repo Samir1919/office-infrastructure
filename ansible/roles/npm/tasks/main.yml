@@ -7,6 +7,8 @@
       - ansible_facts['distribution'] == 'Ubuntu'
       - ansible_facts['distribution_version'] is version('24.04', '>=')
       - ansible_facts['architecture'] == 'x86_64'
+      - npm_proxy_bind_address == npm_host_address
+      - npm_admin_bind_address == npm_host_address
     fail_msg: NPM automation may run only on the approved Ubuntu amd64 npm01 host.
 
 - name: Require explicit production gates before changing npm01

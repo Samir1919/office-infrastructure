@@ -1,6 +1,6 @@
 # Nginx Proxy Manager Internal Deployment Plan
 
-**Status:** IPv4 host/Docker firewall applied and validated; IPv6 publication decision and NPM service implementation approval pending
+**Status:** IPv4 host/Docker firewall and explicit IPv4 NPM bindings approved; NPM service implementation approval pending
 **Host:** `npm01` (`192.168.10.106`)
 **Initial scope:** Internal NPM service and LAN/VPN-only administration; no CRM proxy host, DNS, certificate, router forwarding, or Internet exposure
 
@@ -231,9 +231,10 @@ currently empty. UFW protects IPv6 host input, but the project-owned Docker
 forwarding chain is IPv4-only. There is no present exposure because NPM is not
 deployed and TCP `80`, `81`, and `443` are unused.
 
-The prepared Compose template already binds TCP `81` to the IPv4 LAN address,
-but its TCP `80` and `443` mappings currently use all host addresses. Do not
-deploy that template until one option is documented and approved:
+The owner approved explicit IPv4 binding for all three NPM ports on 2026-07-19.
+The prepared Compose template binds TCP `80`, `81`, and `443` only to
+`192.168.10.106`; it does not publish them on the host's global IPv6 address.
+The alternatives reviewed were:
 
 | Option | Benefits | Risks and impact | Assessment |
 |---|---|---|---|
@@ -241,9 +242,11 @@ deploy that template until one option is documented and approved:
 | Add equivalent IPv6 Docker filtering and publish IPv6 | Preserves dual-stack service potential | Requires stable approved IPv6 prefix, IPv6 router/firewall facts, external tests, and wider public-edge review | Defer; facts and approval are absent |
 | Disable host/Docker IPv6 | Removes the path globally | Changes VM/network behaviour beyond NPM and may affect future services | Reject as disproportionate |
 
-The current recommendation is to bind all three NPM ports explicitly to
-`192.168.10.106`. This is a Compose preparation change only; it does not approve
-an NPM service start or public IPv4 publication.
+The explicit IPv4 binding is approved for the current internal stage. This is a
+Compose preparation change only; it does not approve an NPM service start or
+public IPv4 publication. Ansible syntax/check mode, host-address assertions, and
+temporary Docker Compose schema validation passed. Native IPv6 publication
+remains deferred.
 
 ## Approved automation-preparation boundary
 
@@ -297,8 +300,8 @@ change safely.
 3. Approve or reject the layered UFW plus project-owned `DOCKER-USER` design.
 4. The IPv4 firewall apply and non-restart validation are complete. Docker
    restart persistence validation remains separately approval gated.
-5. Approve or reject explicit IPv4 binding of NPM TCP `80`, `81`, and `443`
-   before service deployment; native IPv6 publication remains deferred.
+5. Explicit IPv4 binding of NPM TCP `80`, `81`, and `443` is approved and
+   prepared; native IPv6 publication remains deferred.
 6. After firewall and IPv6-boundary evidence is reviewed, separately approve or reject the first
    NPM service apply.
 

@@ -89,6 +89,19 @@ This is the durable history of completed and validated work. Planned work belong
   IPv4 binding is recommended before service apply; native IPv6 publication is
   deferred pending facts and approval.
 
+### IPv4 NPM port binding approved and prepared
+
+- Approved explicit `192.168.10.106` bindings for NPM TCP `80`, `81`, and `443`
+  so the future container does not publish those ports on the host's global IPv6
+  address while the project Docker policy is IPv4-only.
+- Added host-address assertions for both proxy and administration bindings.
+- Passed Ansible syntax and check mode plus temporary Docker Compose schema
+  validation with all three rendered mappings bound to `192.168.10.106`.
+- Removed the temporary validation file and reconfirmed no NPM application path,
+  container, or TCP `80`, `81`, or `443` listener exists.
+- Kept native IPv6 publication, NPM service apply, image pull, proxy hosts, DNS,
+  TLS, and router forwarding separately gated.
+
 ## 2026-07-19 — CRM account and audit hardening canary
 
 ### Approved and documented
