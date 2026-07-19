@@ -129,6 +129,9 @@ This is the durable history of completed and validated work. Planned work belong
 - Removed the temporary validation file and reconfirmed NPM remains undeployed.
 - No administrator identity, password, TOTP secret, backup code, session, NPM
   service, image, container, proxy host, DNS, TLS, or router rule was created.
+- Recorded the owner-approved NPM administrator email
+  `ryansamir90@gmail.com`; no password, TOTP secret, QR content, session token,
+  or backup code was received or stored.
 
 ## 2026-07-19 — CRM account and audit hardening canary
 

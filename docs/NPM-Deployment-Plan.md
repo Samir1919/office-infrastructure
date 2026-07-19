@@ -1,6 +1,6 @@
 # Nginx Proxy Manager Internal Deployment Plan
 
-**Status:** IPv4 firewall/bindings and safe first-admin workflow validated; administrator email and NPM service approval pending
+**Status:** IPv4 firewall/bindings and safe first-admin workflow validated; NPM service approval pending
 **Host:** `npm01` (`192.168.10.106`)
 **Initial scope:** Internal NPM service and LAN/VPN-only administration; no CRM proxy host, DNS, certificate, router forwarding, or Internet exposure
 
@@ -292,8 +292,9 @@ Official references:
 
 ### Approved security recommendation
 
-- The owner must provide an owner-controlled administrator email before service
-  deployment. Do not invent an address or silently reuse the CRM identity.
+- The owner approved `ryansamir90@gmail.com` as the NPM administrator email on
+  2026-07-19. This records identity only; it does not store a password or 2FA
+  material.
 - Use the approved password manager to generate and store one unique password
   of 20–100 characters. NPM's upstream minimum is only eight; the project uses
   a stronger minimum without placing the value in automation.
@@ -361,9 +362,9 @@ change safely.
    complete.
 5. Explicit IPv4 binding of NPM TCP `80`, `81`, and `443` is approved and
    prepared; native IPv6 publication remains deferred.
-6. Provide the owner-controlled NPM administrator email. Password generation,
-   entry, and TOTP/backup-code handling remain owner-operated and never enter
-   automation or chat.
+6. Owner-controlled administrator email `ryansamir90@gmail.com` is approved and
+   recorded. Password generation, entry, and TOTP/backup-code handling remain
+   owner-operated and never enter automation or chat.
 7. After firewall, IPv6 boundary, and administrator workflow evidence is
    reviewed, separately approve or reject the first NPM service apply.
 

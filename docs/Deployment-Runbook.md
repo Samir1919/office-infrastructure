@@ -203,6 +203,10 @@ setup wizard. Before service apply, record only the approved administrator email
 never record the password, TOTP secret, QR content, session token, or backup
 codes in the repository or Ansible output.
 
+The approved NPM administrator email is `ryansamir90@gmail.com`. This value is
+entered by the owner in the browser wizard; it is not injected into the
+container environment.
+
 The owner generates a unique 20–100-character password in the approved password
 manager, enters it directly in the setup wizard, enables TOTP 2FA, stores backup
 codes in the protected password-manager record, signs out, and validates a fresh
