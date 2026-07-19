@@ -136,9 +136,10 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
   chains were present, so a Docker-aware LAN-only TCP `81` control is a blocker
   before NPM deployment. SQLite on `npm01`, the persistent layout, and
   non-deploying automation preparation are approved and validated. The safe
-  owner-operated administrator workflow and firewall implementation are now
-  prepared/validated; administrator email input, service deployment, proxy
-  host, DNS, TLS, and router changes remain pending or unapproved.
+  owner-operated administrator workflow, administrator identity recording,
+  firewall implementation, and internal service deployment/setup validation are
+  now complete; CRM proxy host, DNS, TLS, router changes, and public-edge fact
+  collection remain pending or unapproved.
 - The NPM firewall architecture review documents why ordinary UFW does not
   control Docker-published ports, rejects editing Docker-owned chains or
   disabling Docker's iptables management, and recommends a layered UFW host
@@ -165,8 +166,49 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
   blocking startup timeout. No proxy host, DNS, TLS, router rule, or public
   exposure exists. Current frontend 2FA is unavailable, so TCP `81` remains
   LAN/VPN-only.
+- The owner provided the first public-edge fact package on 2026-07-19:
+  intended CRM FQDN `crm.asalarealestate.com`, owner-controlled Cloudflare DNS,
+  owner-reported public IPv4 `103.147.107.152` already targeted by the CRM
+  subdomain, owner admin access plus port-forward capability on router
+  `D-Link DIR-X3000Z`, owner-confirmed free TCP `80`/`443`, and no native IPv6
+  publication requirement. The owner also agreed to review/use HTTP-01 first
+  and to send initial renewal/proxy alerts to the owner email, with a future
+  monitoring system later. The owner also reports that router WAN IP,
+  PPPoE-on-router, lack of known upstream `80`/`443` conflicts, and quick
+  forwarding-rule rollback are all under owner control and currently favourable.
 - MongoDB Community `8.3.4` is installed and validated on `db01`. Authorization is enabled; `crm_app` has `readWrite` access to `crm_prod` only; UFW allows TCP `27017` only from `crm01` and SSH only from the office server LAN. A test migration from Windows `realestate_crm` to `crm_prod` imported 275 leads and 4 users; the Windows source remains unchanged.
-- The internal CRM canary is deployed on `crm01` from Git revision `dca592b946e1aad1b297c05d51cab58e7cac97c9`, runs Node.js 24 LTS, returns healthy from `/healthz`, connects to `crm_prod`, and has no Nginx Proxy Manager host, public DNS, TLS certificate, or router forwarding. Permission taxonomy mapping remains applied to the migrated users.
+- The CRM canary is deployed on `crm01` from Git revision `dca592b946e1aad1b297c05d51cab58e7cac97c9`, runs Node.js 24 LTS, returns healthy from `/healthz`, connects to `crm_prod`, and remains the backend application listener behind the approved NPM publication path. Permission taxonomy mapping remains applied to the migrated users.
+- An internal-only NPM proxy host for `crm.asalarealestate.com` is now deployed
+  on `npm01` and forwards to `http://192.168.10.101:3000` with no certificate,
+  no router forwarding, and no public DNS change during this stage. NPM stored
+  the host with `nginx_online:true`; a control-node resolve-equivalent request
+  to `192.168.10.106` returned proxied CRM `/healthz` `{"status":"ok"}` and a
+  proxied `/login` HTTP `200`. The direct CRM backend remained healthy. The
+  owner completed LAN-browser validation through the temporary host override and
+  reported expected CRM behaviour before removing the override. A later
+  machine-authenticated restart check created one temporary synthetic admin
+  session without using any stored user password, confirmed proxied
+  unauthenticated `/admin/users` redirected to `/login`, confirmed the same
+  proxied route returned HTTP `200` while the synthetic session cookie was
+  present, restarted only `realestate-crm-app`, and reconfirmed proxied
+  `/admin/users` still returned HTTP `200` with the same saved session cookie.
+  The temporary cookie file was removed afterward. All certificate, router,
+  public-DNS, and public-edge steps remain separately gated.
+- The approved public HTTPS stage for `crm.asalarealestate.com` is now deployed.
+  The owner set Cloudflare to `DNS only`, kept no native IPv6 publication, and
+  forwarded only TCP `80` and `443` to `npm01`. The NPM Docker-aware firewall
+  was adjusted so TCP `80`/`443` are public while TCP `81` stays LAN-only, and
+  the drop rule remains ingress-scoped so it does not block NPM container
+  egress to Let's Encrypt. On `crm01`, `SESSION_COOKIE_SECURE=true` is now
+  active while HSTS remains disabled. NPM issued Let's Encrypt certificate
+  `id=3` for `crm.asalarealestate.com`, attached it to proxy host `id=1`,
+  enabled forced HTTPS and HTTP/2, and kept the backend on
+  `http://192.168.10.101:3000`. Validation confirmed listener binds on
+  `192.168.10.106:80/81/443`, HTTP `301` redirect to HTTPS, HTTPS `/login`
+  `200` with a `Secure` CRM session cookie, HTTPS `/healthz`
+  `{\"status\":\"ok\"}`, `nginx_online:true`, and a certificate validity
+  window through 2026-10-17. `crm01:3000` remains internal-only and TCP `81`
+  remains a LAN/VPN-only administration path.
 - The approved encrypted MongoDB-backed 12-hour session store is active and validated. Machine checks confirmed the `crm_prod.sessions` collection, its TTL index, and unchanged counts of 275 leads and 4 users; after an application-container restart, the owner refreshed the same authenticated browser page and confirmed the login persisted. Future CRM database archives exclude the ephemeral `sessions` collection so recovery intentionally requires a fresh login.
 - The owner-reported login Enter-key fix is merged and deployed from CRM revision `1a8301bca2b4b57bd40a4847b0f83aaa40c6b341`. CI, deployment health, exact-revision, session TTL, and protected record-count checks passed; the owner signed in by pressing Enter and confirmed browser acceptance. Rollback remains `e7a9ddbf8e8e3b12ba187906484e813150a3490f`.
 - Login-only rate limiting with 5 failed account-and-IP attempts and 25 failed IP-wide attempts per 15 minutes, plus compatible Helmet security headers, is deployed and validated. A dummy-account live test returned five `401` responses followed by `429` with rate-limit metadata; approved headers were present while HSTS and CSP remained absent on internal HTTP. Public/NPM/DNS/router work remains separately gated.
@@ -192,19 +234,35 @@ The owner has approved a limited pilot on the current 16 GB host so that the exi
 2. Treat the validated `crm_prod` dataset as the current latest migrated copy; do not repeat the Windows migration or create `crm_restore_test` unless the owner reports new source data.
 3. The first off-host `crm_prod` archive is complete on the FileVault-enabled macOS control node: 13,322 bytes, mode `0600`, with matching remote/local SHA-256 `6b8d943368e068046624a45125a924b1ce8f258ef83c68d00fd73bcf99d152a0`; the `db01` temporary workspace was removed.
 4. The isolated restore test is complete: archive SHA-256 and all collection, document, and index manifests matched; `crm_prod` remained unchanged.
-5. Collect the owner-controlled FQDN, DNS provider, public-IP/CGNAT, and router facts before designing staged internal NPM/TLS validation. CSP migration, compromised-password screening, MFA direction, HSTS, secure cookies, and any public exposure remain separately gated. Hardware work remains deferred.
-6. Review and approve or reject the documented internal NPM design choices:
-   SQLite for the constrained single instance and
-   `/opt/nginx-proxy-manager` persistence are approved, as is preparation of a
-   dedicated non-deploying Ansible role. Docker-aware LAN-only TCP `81` and the
-   service apply remain later separate approvals.
-7. The layered NPM IPv4 firewall and Docker-restart persistence are validated,
-   and explicit `192.168.10.106` binding for TCP `80`, `81`, and `443` is
-   approved. NPM service start remains a separate approval.
-8. The owner-controlled NPM administrator email `ryansamir90@gmail.com` is
-   recorded without password or 2FA material. Internal service/setup validation
-   is complete; collect FQDN, DNS, public-IP/CGNAT, and router facts before any
-   CRM proxy/public stage.
+5. The first owner-controlled edge facts are now recorded: FQDN
+   `crm.asalarealestate.com`, owner-controlled Cloudflare DNS, public IPv4
+   `103.147.107.152`, router admin access with port-forward capability on
+   `D-Link DIR-X3000Z`, owner-confirmed free TCP `80`/`443`, no native IPv6
+   publication requirement, HTTP-01 as the first certificate path, and owner
+   email plus future monitoring system for renewal/proxy alerts. Hardware work
+   remains deferred.
+6. The owner-reported upstream-conflict checklist is complete: router WAN IP
+   matches the intended public IP, PPPoE terminates on `D-Link DIR-X3000Z`, no
+   known upstream `80`/`443` conflict is presently indicated, and future
+   forwarding rules can be rolled back quickly by the owner.
+7. The NPM public HTTPS edge is now active with SQLite persistence, pinned
+   image, explicit IPv4 bindings, public TCP `80/443`, LAN-only TCP `81`,
+   owner bootstrap, restart persistence, and one CRM proxy host for
+   `crm.asalarealestate.com -> http://192.168.10.101:3000` with Let's Encrypt
+   certificate `id=3`, forced HTTPS, and HTTP/2. TCP `3000` remains an
+   internal CRM application port only and is not approved for direct public
+   forwarding.
+8. The internal proxy-stage restart-persistence check and the first public
+   HTTPS publication stage are now complete. Any next implementation work moves
+   to separately approved post-public hardening and release operations only.
+9. Owner release acceptance for the first public HTTPS stage is now complete:
+   the owner confirmed external-Internet access, LAN access, and normal CRM
+   workflow behaviour. Interim monitoring/renewal coverage is also now
+   validated through NPM's built-in hourly Let's Encrypt renewal worker,
+   certificate record ownership by `ryansamir90@gmail.com`, and documented
+   manual checks until `mon01` is deployed. CSP migration,
+   compromised-password screening, MFA direction, HSTS, and any later external
+   negative-path testing remain separate hardening follow-up work.
 
 ## Supporting references
 

@@ -6,10 +6,11 @@ npm_firewall_host: npm01
 npm_firewall_host_address: 192.168.10.106
 npm_firewall_lan_interface: enp6s18
 npm_firewall_lan_cidr: 192.168.10.0/24
-npm_firewall_tcp_ports:
+npm_firewall_public_tcp_ports:
   - 80
-  - 81
   - 443
+npm_firewall_lan_only_tcp_ports:
+  - 81
 
 npm_firewall_chain: NPM-FILTER
 npm_firewall_staging_chain: NPM-FILTER-NEXT

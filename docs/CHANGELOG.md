@@ -2,6 +2,194 @@
 
 This is the durable history of completed and validated work. Planned work belongs in [PROJECT-ROADMAP.md](../PROJECT-ROADMAP.md).
 
+## 2026-07-19 — CRM certificate renewal coverage validated
+
+### Validated
+
+- Confirmed NPM certificate `id=3` for `crm.asalarealestate.com` is present,
+  owned by NPM user ID `1`, and anchored to
+  `ryansamir90@gmail.com`.
+- Confirmed the active certificate subject, issuer, and expiry window through
+  `2026-10-17`.
+- Confirmed recent NPM backend logs show
+  `Let's Encrypt Renewal Timer initialized` plus the recurring hourly renewal
+  worker messages ending in `Completed SSL cert renew process`.
+- Documented the interim manual renewal-check procedure in
+  [Monitoring Strategy](Monitoring-Strategy.md) until a dedicated `mon01`
+  monitoring stack is deployed.
+
+### Remaining gate
+
+- Dedicated alerting/monitoring automation is still deferred to the future
+  `mon01` phase.
+
+## 2026-07-19 — CRM public HTTPS owner acceptance completed
+
+### Validated
+
+- Recorded owner acceptance that `crm.asalarealestate.com` works from the
+  external Internet.
+- Recorded owner acceptance that LAN access is also acceptable for the current
+  operating path.
+- Recorded owner acceptance that normal CRM workflow behaviour is acceptable on
+  the deployed public HTTPS stage.
+
+### Remaining gate
+
+- Later hardening items such as HSTS, CSP migration, monitoring/renewal
+  operations, compromised-password screening, MFA direction, and optional
+  external negative-path testing remain separate follow-up work.
+
+## 2026-07-19 — CRM public HTTPS stage deployed
+
+### Implemented
+
+- Updated the NPM Docker-aware firewall policy so TCP `80/443` are public on
+  `enp6s18` while TCP `81` remains LAN-only, and kept the final ingress drop
+  scoped so NPM container egress is not blocked.
+- Switched the owner-managed Cloudflare record for
+  `crm.asalarealestate.com` to `DNS only` for direct HTTP-01 validation.
+- Updated `crm01` to `SESSION_COOKIE_SECURE=true` and recreated only the CRM
+  application container.
+- Issued Let's Encrypt certificate `id=3` for `crm.asalarealestate.com` via
+  NPM's native HTTP-01 flow.
+- Updated NPM proxy host `id=1` to use certificate `id=3`, `ssl_forced=true`,
+  `http2_support=true`, and `hsts_enabled=false`.
+
+### Validated
+
+- Confirmed `crm01` returned `/healthz` `200` after the secure-cookie restart,
+  and the container environment now reports `SESSION_COOKIE_SECURE=true` with
+  `SECURITY_HSTS_ENABLED=false`.
+- Confirmed NPM stored proxy host `id=1` with `certificate_id=3`,
+  `ssl_forced=true`, `http2_support=true`, and `meta.nginx_online=true`.
+- Confirmed generated NPM config `/data/nginx/proxy_host/1.conf` contains the
+  expected `listen 80;`, `listen 443 ssl;`, server name, and Let's Encrypt
+  certificate paths.
+- Confirmed NPM listens on `192.168.10.106:80`, `:81`, and `:443`.
+- Confirmed HTTP host-header request to `192.168.10.106` redirects `/login` to
+  `https://crm.asalarealestate.com/login`.
+- Confirmed HTTPS `/login` returned HTTP `200` with the expected security
+  headers and a `Secure` `crm.sid` cookie.
+- Confirmed HTTPS `/healthz` returned `{\"status\":\"ok\"}`.
+- Confirmed the issued certificate subject `CN=crm.asalarealestate.com`,
+  issuer `Let's Encrypt YE2`, and validity through 2026-10-17.
+- Confirmed the current resolver view from `npm01` shows public IPv4
+  `103.147.107.152` with no separate native IPv6 answer in use.
+
+### Remaining gate
+
+- HSTS, CSP migration, compromised-password screening, MFA direction, external
+  negative-path tests, and final owner release acceptance remain separately
+  gated.
+
+## 2026-07-19 — Proxied CRM restart persistence validated
+
+### Validated
+
+- Reused the approved internal-only NPM proxy host for
+  `crm.asalarealestate.com -> http://192.168.10.101:3000` with no certificate,
+  router forwarding, or public DNS change.
+- Created one temporary synthetic admin session in the approved MongoDB-backed
+  session store without printing or relying on any existing user password.
+- Confirmed proxied unauthenticated `GET /admin/users` returned HTTP `302` to
+  `/login`, while the same proxied route returned HTTP `200` with the temporary
+  authenticated session cookie.
+- Restarted only `realestate-crm-app` on `crm01`, waited for `/healthz` to
+  return `200`, and reconfirmed proxied `/admin/users` still returned HTTP
+  `200` with the same saved session cookie.
+- Removed the temporary cookie artifact after validation.
+
+### Remaining gate
+
+- Interactive proxied login/logout, representative CSRF-protected edits, any
+  certificate request, public DNS use, and router-forwarding work remain
+  separately staged and owner-approved.
+
+## 2026-07-19 — Internal CRM proxy host deployed on NPM
+
+### Implemented
+
+- Created one internal-only NPM proxy host for
+  `crm.asalarealestate.com -> http://192.168.10.101:3000` using NPM's native
+  internal create/configure/reload flow, not a manual SQLite edit.
+- Kept certificate issuance, forced SSL, public DNS changes, router forwarding,
+  and any direct public exposure disabled.
+- Retained `crm01:3000` as the internal backend listener only; only `npm01`
+  remains the future public-edge entry point for approved TCP `80`/`443`.
+
+### Validated
+
+- Confirmed the saved NPM `proxy_host` row with `enabled=1`,
+  backend `192.168.10.101:3000`, and `meta.nginx_online=true`.
+- Confirmed generated NPM config file `/data/nginx/proxy_host/1.conf` for
+  `crm.asalarealestate.com`.
+- Confirmed a control-node request using a temporary resolve-equivalent override
+  to `192.168.10.106` returned proxied CRM `/healthz` response
+  `{\"status\":\"ok\"}`.
+- Confirmed proxied `GET /login` returned HTTP `200` with expected CRM security
+  headers and session-cookie issuance.
+- Confirmed the direct CRM backend on `crm01:3000` remained healthy.
+- Added an exact owner LAN-browser validation checklist for the temporary
+  `crm.asalarealestate.com -> 192.168.10.106` host-override test path.
+- The owner later completed that LAN-browser validation successfully and removed
+  the temporary host override afterward.
+
+### Remaining gate
+
+- Any later proxied-path restart-persistence validation, certificate work,
+  public DNS, and router-forwarding stages remain separately gated.
+
+## 2026-07-19 — CRM/NPM publication fact-collection gate documented
+
+### Updated
+
+- Aligned the roadmap, CRM publication plan, and NPM deployment plan with the
+  current validated state: internal NPM `2.15.1` service/setup is complete, but
+  no CRM proxy host, DNS, TLS, or router forwarding exists.
+- Added the owner-controlled fact package required before any proxy-host or
+  public-edge design: intended CRM FQDN, DNS-provider control path, public
+  IPv4-versus-CGNAT status, router ownership and TCP `80`/`443` capability,
+  current public-port conflicts, IPv6 publication intent, certificate boundary,
+  and monitoring/alert ownership.
+- Documented that this collection stage is documentation-only and does not
+  authorize DNS-provider login, router edits, certificate issuance, proxy-host
+  creation, or public exposure.
+- Clarified that any next CRM proxy/TLS step must follow a separate owner review
+  and approval after the fact package is recorded.
+- Recorded the first owner-provided edge facts: FQDN
+  `crm.asalarealestate.com`, owner-controlled Cloudflare DNS, public IPv4
+  `103.147.107.152`, router admin access with port-forward capability on
+  `D-Link DIR-X3000Z`, owner-confirmed free TCP `80`/`443`, and no native IPv6
+  publication requirement.
+- Recorded the owner's next edge decisions as well: use/review HTTP-01 first,
+  and send initial renewal/proxy alerts to the owner email before a future
+  monitoring system is added.
+- Recorded the owner-reported upstream result as favourable as well: router WAN
+  IP match, PPPoE on `D-Link DIR-X3000Z`, no known upstream `80`/`443`
+  forwarding conflict, and quick rollback control for future forwarding rules.
+- Added the recommended first proxy-validation boundary: keep the initial CRM
+  proxy host internal-only on `npm01`, test the real FQDN through a temporary
+  LAN-client host override to `192.168.10.106`, and defer both certificate
+  request and router forwarding to a later separately approved stage.
+- Clarified that `crm01:3000` is only the current internal CRM application
+  listener and is not approved for direct public/router exposure.
+- Added an owner-facing upstream-conflict checklist covering WAN-IP match,
+  double-NAT/ISP-path review, existing `80`/`443` conflicts, inbound-port
+  blocking, and quick rollback of future forwarding rules.
+
+### Validated
+
+- Re-read the authoritative roadmap plus the CRM/NPM publication documents and
+  confirmed the documented next step now matches the validated repository state
+  recorded at commit `dc49d04`.
+- Kept the approved security boundary unchanged: TCP `81` remains LAN/VPN-only,
+  native IPv6 publication remains deferred, and no new infrastructure change was
+  performed by this documentation update.
+- Treated the new DNS/public-IP/router details as owner-reported facts only; no
+  external DNS, router, or certificate validation was performed from the
+  repository environment.
+
 ## 2026-07-19 — Nginx Proxy Manager baseline and deployment design
 
 ### Inspected

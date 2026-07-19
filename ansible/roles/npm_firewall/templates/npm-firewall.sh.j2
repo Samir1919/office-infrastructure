@@ -6,7 +6,8 @@ active_chain={{ npm_firewall_chain | quote }}
 staging_chain={{ npm_firewall_staging_chain | quote }}
 lan_interface={{ npm_firewall_lan_interface | quote }}
 lan_cidr={{ npm_firewall_lan_cidr | quote }}
-tcp_ports={{ npm_firewall_tcp_ports | join(',') | quote }}
+public_tcp_ports={{ npm_firewall_public_tcp_ports | join(',') | quote }}
+lan_only_tcp_ports={{ npm_firewall_lan_only_tcp_ports | join(',') | quote }}
 
 remove_jump() {
     target_chain=$1
@@ -31,13 +32,22 @@ apply_rules() {
     "$iptables_cmd" -w -N "$staging_chain"
     "$iptables_cmd" -w -A "$staging_chain" \
         -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+{% if npm_firewall_public_tcp_ports | length > 0 %}
+    "$iptables_cmd" -w -A "$staging_chain" \
+        -i "$lan_interface" -p tcp \
+        -m multiport --dports "$public_tcp_ports" \
+        -m conntrack --ctstate NEW -j ACCEPT
+{% endif %}
+{% if npm_firewall_lan_only_tcp_ports | length > 0 %}
     "$iptables_cmd" -w -A "$staging_chain" \
         -i "$lan_interface" -s "$lan_cidr" -p tcp \
-        -m multiport --dports "$tcp_ports" \
+        -m multiport --dports "$lan_only_tcp_ports" \
         -m conntrack --ctstate NEW -j ACCEPT
     "$iptables_cmd" -w -A "$staging_chain" \
-        -p tcp -m multiport --dports "$tcp_ports" \
+        -i "$lan_interface" \
+        -p tcp -m multiport --dports "$lan_only_tcp_ports" \
         -m conntrack --ctstate NEW -j DROP
+{% endif %}
     "$iptables_cmd" -w -A "$staging_chain" -j RETURN
 
     "$iptables_cmd" -w -I DOCKER-USER 1 -j "$staging_chain"
@@ -49,13 +59,22 @@ check_rules() {
     "$iptables_cmd" -w -C DOCKER-USER -j "$active_chain"
     "$iptables_cmd" -w -C "$active_chain" \
         -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+{% if npm_firewall_public_tcp_ports | length > 0 %}
+    "$iptables_cmd" -w -C "$active_chain" \
+        -i "$lan_interface" -p tcp \
+        -m multiport --dports "$public_tcp_ports" \
+        -m conntrack --ctstate NEW -j ACCEPT
+{% endif %}
+{% if npm_firewall_lan_only_tcp_ports | length > 0 %}
     "$iptables_cmd" -w -C "$active_chain" \
         -i "$lan_interface" -s "$lan_cidr" -p tcp \
-        -m multiport --dports "$tcp_ports" \
+        -m multiport --dports "$lan_only_tcp_ports" \
         -m conntrack --ctstate NEW -j ACCEPT
     "$iptables_cmd" -w -C "$active_chain" \
-        -p tcp -m multiport --dports "$tcp_ports" \
+        -i "$lan_interface" \
+        -p tcp -m multiport --dports "$lan_only_tcp_ports" \
         -m conntrack --ctstate NEW -j DROP
+{% endif %}
     "$iptables_cmd" -w -C "$active_chain" -j RETURN
 }
 

@@ -10,4 +10,5 @@ crm_database_user: 'crm_app'
 crm_bootstrap_admin_name: 'Admin User'
 crm_bootstrap_admin_email: 'admin@asalagroupbd.com'
 crm_reset_canary_database: false
+crm_session_cookie_secure: false
 crm_security_hsts_enabled: false

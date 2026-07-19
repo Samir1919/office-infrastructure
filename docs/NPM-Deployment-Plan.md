@@ -1,8 +1,8 @@
 # Nginx Proxy Manager Internal Deployment Plan
 
-**Status:** Internal NPM service and administrator setup validated; no proxy host or public exposure approved
+**Status:** NPM public HTTPS edge for CRM is deployed; TCP `81`, HSTS, and later release gates remain controlled separately
 **Host:** `npm01` (`192.168.10.106`)
-**Initial scope:** Internal NPM service and LAN/VPN-only administration; no CRM proxy host, DNS, certificate, router forwarding, or Internet exposure
+**Initial scope:** This document began with the internal NPM service and LAN/VPN-only administration stage and now records the first approved public CRM HTTPS publication state on the same host
 
 ## Purpose and boundary
 
@@ -12,10 +12,13 @@ The approved traffic architecture remains:
 User -> npm01 -> crm01:3000
 ```
 
-The first deployment stage must not publish the CRM. It prepares only the NPM
-service after a separate owner approval. TCP `81` is an administration port and
-must remain reachable only from the office LAN or an approved VPN. SSH,
-databases, Proxmox, and NPM administration must never be publicly forwarded.
+The first deployment stage did not publish the CRM; that internal-only history
+is retained below. The current approved state now publishes the CRM only
+through NPM on TCP `80/443`. TCP `81` remains an administration port and must
+remain reachable only from the office LAN or an approved VPN. SSH, databases,
+Proxmox, and NPM administration must never be publicly forwarded.
+The `crm01:3000` hop is the current internal CRM application listener only; it
+is not a public-facing port and must never be router-forwarded directly.
 
 ## Read-only baseline — 2026-07-19
 
@@ -143,11 +146,13 @@ The proposed policy has two separate layers:
    services but is not claimed to control Docker-published ports.
 2. **Container-forwarding layer — Docker `DOCKER-USER`:** insert one jump to a
    project-owned chain. In that chain, accept established/related flows, allow
-   new TCP `80`, `81`, and `443` only from `192.168.10.0/24` on `enp6s18`, and
-   drop other new traffic to those NPM container ports regardless of ingress
-   interface. A future approved VPN requires an explicit allow rule before this
-   drop. Return all unrelated
-   Docker traffic without changing its policy.
+   new public TCP `80` and `443` on `enp6s18`, allow new LAN-only TCP `81`
+   from `192.168.10.0/24` on `enp6s18`, and drop other new TCP `81` traffic
+   that also arrives on `enp6s18`. The final drop must stay scoped to the
+   inbound LAN/public ingress interface so it does not accidentally block
+   unrelated forwarded Docker egress such as Let's Encrypt API calls from the
+   NPM container. A future approved VPN requires an explicit allow rule before
+   this drop. Return all unrelated Docker traffic without changing its policy.
 
 The project-owned chain must be narrowly named for NPM, must not flush or set a
 policy on `DOCKER-USER`, and must not affect other current or future Docker
@@ -214,18 +219,21 @@ recovery access.
   default-deny routed traffic, and SSH TCP `22` allowed only from
   `192.168.10.0/24`.
 - `DOCKER-USER` has exactly one jump to `NPM-FILTER`. The project chain accepts
-  established/related traffic, permits new TCP `80`, `81`, and `443` only from
-  `192.168.10.0/24` on `enp6s18`, drops other new IPv4 traffic to those ports,
-  and returns unrelated traffic.
+  established/related traffic, permits new public TCP `80` and `443` on
+  `enp6s18`, permits new TCP `81` only from `192.168.10.0/24` on `enp6s18`,
+  drops other new TCP `81` traffic on that ingress interface, and returns
+  unrelated traffic.
 - The root-owned loader is mode `0750`; the root-owned systemd unit is mode
   `0644`, enabled, and active. A repeat check-mode run reported zero changes.
-- A fresh SSH/Ansible connection succeeded. No NPM path, container, or listener
-  on TCP `80`, `81`, or `443` exists.
+- A first public-stage adjustment was required before certificate issuance
+  because the earlier LAN-only drop logic also matched forwarded NPM container
+  egress on TCP `443`, blocking outbound Let's Encrypt API access. The active
+  rule now keeps the drop ingress-scoped so outbound certificate traffic is not
+  intercepted.
 - The owner separately approved one Docker daemon restart. After the restart, a
   fresh SSH/Ansible connection succeeded; Docker and the firewall unit were
   active, the unit remained enabled, UFW policy was unchanged, and the exact
-  single jump plus project-chain rules were restored. Containers remained empty
-  and TCP `80`, `81`, and `443` remained unused.
+  single jump plus project-chain rules were restored.
 
 ### IPv6 publication gate
 
@@ -250,6 +258,24 @@ Compose preparation change only; it does not approve an NPM service start or
 public IPv4 publication. Ansible syntax/check mode, host-address assertions, and
 temporary Docker Compose schema validation passed. Native IPv6 publication
 remains deferred.
+
+### Interim renewal evidence — 2026-07-19
+
+- NPM user/account ID `1` remains active with email
+  `ryansamir90@gmail.com`, matching the approved initial renewal/proxy alert
+  identity.
+- Let's Encrypt certificate `id=3` for `crm.asalarealestate.com` is stored in
+  `/etc/letsencrypt/live/npm-3/` and currently expires on
+  `2026-10-17 02:27:51 UTC`.
+- Recent NPM backend logs show the built-in message
+  `Let's Encrypt Renewal Timer initialized`.
+- The same log stream shows the hourly worker cadence repeating
+  `Renewing SSL certs expiring within 30 days ...`
+  followed by
+  `Completed SSL cert renew process`.
+- A dedicated monitoring/alerting stack is still deferred to the future
+  `mon01` phase, so current renewal assurance is the validated built-in NPM
+  worker plus documented manual review.
 
 ## Approved automation-preparation boundary
 
@@ -337,6 +363,126 @@ scope. Do not rerun setup by deleting `database.sqlite`.
 7. Recheck RAM, swap, disk, load, Docker logs, and existing CRM/MongoDB health.
 8. Confirm there is still no proxy host, certificate, DNS change, or router rule.
 
+## Required fact collection before any proxy host or public-edge design
+
+Internal NPM service validation is complete. The next approved project step is
+to collect and record the owner-controlled facts that decide whether a later CRM
+proxy/TLS stage is even possible. This fact collection is documentation only.
+It does not approve or perform any proxy host creation, DNS change, certificate
+request, router forwarding, or public exposure.
+
+| Required fact | Why it is needed | Current state |
+|---|---|---|
+| Intended CRM FQDN | Determines the candidate proxy-host name, certificate subject, and browser validation path | Owner provided `crm.asalarealestate.com` |
+| DNS provider and exact zone-control path | Determines who can create/rollback records and whether DNS-01 is even possible later | Owner-controlled Cloudflare zone |
+| Public IPv4 reachability or CGNAT status | Determines whether direct inbound HTTP-01/router forwarding is feasible | Owner reports public IPv4 `103.147.107.152`; CGNAT not currently indicated |
+| Router ownership, admin access, and current TCP `80`/`443` use | Determines whether the owner can safely forward only the approved ports and whether conflicts exist | Owner admin access exists to `D-Link DIR-X3000Z`; port forwarding is available; TCP `80`/`443` are owner-confirmed free |
+| Intent for native IPv6 publication | Confirms whether the current approved IPv4-only binding remains sufficient or whether a later reviewed IPv6 design is needed | Owner does not require IPv6 publication; keep IPv4-only design |
+| Preferred certificate boundary | Confirms whether a later stage should evaluate HTTP-01 only, DNS-01, or no public certificate path yet | Owner agreed to review/use HTTP-01 first on public TCP `80`/`443` |
+| TCP `81` administration path | Confirms whether LAN-only remains enough or whether a separately approved VPN path is needed before wider proxy work | LAN-only validated; VPN remains separate |
+| Monitoring/alert recipient for proxy and renewal failures | Prevents a certificate/proxy stage from launching without an owner-visible failure path | Owner email first; future monitoring system later |
+
+### Owner-reported fact package — 2026-07-19
+
+- Intended CRM FQDN: `crm.asalarealestate.com`
+- DNS provider/account control: owner-controlled Cloudflare zone
+- Current public DNS state: the owner reports the CRM subdomain already exists
+  in Cloudflare and points to public IPv4 `103.147.107.152`
+- Public reachability baseline: the owner reports a public IPv4 address is
+  available and CGNAT is not currently indicated
+- Router access baseline: owner admin access exists to a `D-Link DIR-X3000Z`
+  router, and the owner confirms port forwarding is available
+- Native IPv6 publication intent: not required; keep the current IPv4-only
+  publication design and reviewed IPv6 deferral
+- Preferred certificate boundary: review/use HTTP-01 first on public TCP `80`
+  and `443`
+- Monitoring/alert ownership: send initial renewal/proxy alerts to the owner
+  email and add a future monitoring system later
+
+The following edge facts still need explicit confirmation before any proxy-host,
+certificate, or forwarding stage:
+
+- whether any existing router/NAT, ISP, or upstream firewall rule conflicts
+  with the intended direct reverse-proxy path despite the owner-confirmed free
+  TCP `80`/`443` baseline.
+
+### Remaining upstream-conflict confirmation checklist
+
+Confirm the following before any CRM proxy-host apply or HTTP-01 certificate
+attempt:
+
+1. The router WAN/public IPv4 reported by `D-Link DIR-X3000Z` matches
+   `103.147.107.152`.
+2. No ISP modem, ONU, or upstream router adds another NAT layer or separate
+   inbound firewall in front of `D-Link DIR-X3000Z`.
+3. No existing upstream rule already consumes, redirects, or filters inbound
+   TCP `80` or `443`.
+4. The ISP path permits inbound TCP `80` and `443`.
+5. Any future forwarding rule on `D-Link DIR-X3000Z` can be removed quickly if
+   the proxy or certificate step fails.
+
+### Owner-reported upstream result — 2026-07-19
+
+The owner reports that all five checks above are satisfied:
+
+- the router WAN/public IP matches `103.147.107.152`
+- the ISP ONU sits upstream, but PPPoE authentication is performed on
+  `D-Link DIR-X3000Z`, so an additional upstream NAT layer is not currently
+  indicated
+- TCP `80` and `443` have not previously been forwarded on this path
+- no inbound-forwarding issue is currently known on the ISP path
+- future forwarding rules can be removed quickly because router control remains
+  with the owner
+
+Treat these as owner-reported facts. If later validation contradicts any one of
+them, keep the project at the current documentation/approval stage and do not
+apply the first CRM proxy host yet.
+
+## Recommended first CRM proxy-host boundary
+
+After the remaining upstream-conflict fact is confirmed and before any public
+certificate or router step, the first CRM proxy validation should stay internal
+to the LAN:
+
+1. Create one proxy host for `crm.asalarealestate.com` to backend
+   `http://192.168.10.101:3000`.
+2. Do not request a certificate yet and do not enable public router forwarding
+   during this first proxy step.
+3. Use a temporary host override on one approved LAN client so the real FQDN
+   resolves to `192.168.10.106`.
+4. Validate the proxied CRM application path, then either retain the proxy host
+   for the later public stage or remove it cleanly if validation fails.
+
+This boundary keeps NPM administration on LAN/VPN only, preserves the chosen
+HTTP-01 path for the later public certificate stage, and avoids mixing public
+edge risk with the first application-proxy test. The internal backend remains
+`crm01:3000`; only `npm01` should ever receive public TCP `80/443`.
+
+### Applied first CRM proxy-host result — 2026-07-19
+
+The approved internal CRM proxy host now exists on `npm01`:
+
+- domain: `crm.asalarealestate.com`
+- backend: `http://192.168.10.101:3000`
+- certificate: none
+- router forwarding: none
+- public DNS change during this stage: none
+
+Machine validation confirmed the saved NPM row, generated proxy-host config,
+`meta.nginx_online=true`, proxied `/healthz` success through a
+resolve-equivalent FQDN test to `192.168.10.106`, and proxied `/login` HTTP
+`200`. The direct CRM backend remained healthy.
+
+### Approved collection boundary
+
+1. The owner may provide these facts directly, or separately approve read-only
+   observation needed to confirm them.
+2. Do not log in to the DNS provider or router, request a certificate, create a
+   proxy host, edit public DNS, or change forwarding rules during this stage.
+3. If any fact reveals CGNAT, missing router control, conflicting public-port
+   use, or a desire for native IPv6 publication, stop and return to
+   documentation and owner review before proposing implementation.
+
 ## Rollback
 
 For a failed initial service deployment, stop and remove only the NPM Compose
@@ -354,20 +500,36 @@ container, missing persistence, firewall uncertainty, port conflict, repeated
 container restart, material RAM/swap pressure, or inability to reverse the
 change safely.
 
-## Owner decisions required before production implementation
+## Owner decisions required before proxy host or public-edge implementation
 
 1. SQLite and the `/opt/nginx-proxy-manager` persistent layout are approved.
-2. Non-deploying Ansible/Compose preparation and validation are approved.
-3. Approve or reject the layered UFW plus project-owned `DOCKER-USER` design.
-4. The IPv4 firewall apply and Docker-restart persistence validation are
-   complete.
-5. Explicit IPv4 binding of NPM TCP `80`, `81`, and `443` is approved and
-   prepared; native IPv6 publication remains deferred.
-6. Owner-controlled administrator email `ryansamir90@gmail.com` is approved and
+2. The layered UFW plus project-owned `DOCKER-USER` design is approved; the
+   IPv4 firewall apply and Docker-restart persistence validation are complete.
+3. Explicit IPv4 binding of NPM TCP `80`, `81`, and `443` is approved and
+   prepared; native IPv6 publication remains deferred unless the owner later
+   opens a separate reviewed design.
+4. Owner-controlled administrator email `ryansamir90@gmail.com` is approved and
    recorded. Password generation, entry, and TOTP/backup-code handling remain
    owner-operated and never enter automation or chat.
-7. The first internal NPM service apply and administrator setup are complete and
-   validated; no proxy host or public stage is approved.
+5. Internal NPM service deployment/setup validation is complete; do not rerun
+   bootstrap or create a replacement administrator.
+6. The owner-reported fact package is now complete for the first internal
+   proxy-validation stage: FQDN
+   `crm.asalarealestate.com`, owner-controlled Cloudflare DNS, public IPv4
+   `103.147.107.152`, router admin access with port-forward capability on
+   `D-Link DIR-X3000Z`, owner-confirmed free TCP `80`/`443`, no native IPv6
+   publication requirement, and HTTP-01 as the first certificate path.
+7. The upstream NAT/firewall-conflict checklist is owner-reported complete.
+8. Initial monitoring/renewal ownership is the owner email, with a future
+   monitoring system to be added later.
+9. The recommended first CRM proxy-validation method is a temporary hosts-file
+   override on one approved LAN client that resolves the real FQDN to
+   `192.168.10.106`.
+10. One internal CRM proxy host is now deployed and machine-validated without a
+   certificate, public DNS change, or router forwarding.
+11. Separately approve any browser-side validation completion, future
+   certificate workflow, public DNS change, or router forwarding as later
+   stages.
 
-No NPM service, proxy host, administrator secret, certificate, DNS record,
-router rule, firewall rule, CRM setting, or VM resource was changed by this plan.
+No public certificate, public DNS record, or router rule was changed by this
+documentation update.
